@@ -1,5 +1,6 @@
 *.sav
 *.pdf
+Non-subs*.csv
 __pycache__/
 outputs/
 renewed_outputs/
