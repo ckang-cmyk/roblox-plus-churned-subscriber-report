@@ -88,6 +88,38 @@ def num(value: float, digits: int = 0) -> str:
     return f"{value:,.{digits}f}"
 
 
+def wilson_ci(successes: float, total: float, z: float = 1.959963984540054) -> tuple[float, float]:
+    """Return Wilson 95% confidence interval bounds for a binomial proportion."""
+    if pd.isna(successes) or pd.isna(total) or total <= 0:
+        return (pd.NA, pd.NA)
+
+    p = successes / total
+    denominator = 1 + (z**2 / total)
+    center = (p + (z**2 / (2 * total))) / denominator
+    half_width = z * ((p * (1 - p) / total + z**2 / (4 * total**2)) ** 0.5) / denominator
+    return (max(0, center - half_width), min(1, center + half_width))
+
+
+def add_ci_columns(
+    df: pd.DataFrame,
+    success_column: str,
+    total_column: str,
+    proportion_column: str,
+) -> pd.DataFrame:
+    """Add Plotly-ready 95% CI error deltas around an existing proportion column."""
+    working = df.copy()
+    bounds = working.apply(
+        lambda row: wilson_ci(row[success_column], row[total_column]),
+        axis=1,
+        result_type="expand",
+    )
+    working["ci_lower"] = bounds[0]
+    working["ci_upper"] = bounds[1]
+    working["ci_error_plus"] = working["ci_upper"] - working[proportion_column]
+    working["ci_error_minus"] = working[proportion_column] - working["ci_lower"]
+    return working
+
+
 def short_feature(label: str) -> str:
     return FEATURE_SHORT_NAMES.get(str(label), str(label))
 
@@ -174,16 +206,22 @@ def main() -> None:
     q12["feature_short"] = q12["feature"].map(short_feature)
     q13_backlash["feature_short"] = q13_backlash["feature"].map(short_feature)
 
-    crosstab_plot = q2_q10_pct.melt(
+    crosstab_counts_plot = q2_q10_counts.melt(
         id_vars="Platform Sentiment",
         var_name="Likelihood to Re-subscribe",
-        value_name="Row Share",
+        value_name="Respondents",
     )
+    sentiment_totals = q2_q10_counts.set_index("Platform Sentiment")[LIKELIHOOD_ORDER].sum(axis=1)
+    crosstab_counts_plot["Total"] = crosstab_counts_plot["Platform Sentiment"].map(sentiment_totals)
+    crosstab_counts_plot["Row Share"] = crosstab_counts_plot["Respondents"] / crosstab_counts_plot["Total"]
+    crosstab_plot = add_ci_columns(crosstab_counts_plot, "Respondents", "Total", "Row Share")
     fig_sentiment = px.bar(
         crosstab_plot,
         x="Platform Sentiment",
         y="Row Share",
         color="Likelihood to Re-subscribe",
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
         category_orders={
             "Platform Sentiment": SENTIMENT_ORDER,
             "Likelihood to Re-subscribe": LIKELIHOOD_ORDER,
@@ -193,28 +231,39 @@ def main() -> None:
     )
     fig_sentiment.update_layout(barmode="stack", yaxis_tickformat=".0%")
 
+    q6_ci = add_ci_columns(q6, "selected_n", "respondents", "selected_pct")
     fig_q6 = px.bar(
-        q6.sort_values("selected_pct", ascending=False),
+        q6_ci.sort_values("selected_pct", ascending=False),
         x="motivation_short",
         y="selected_pct",
         title="Initial Subscription Motivations Among Churned Subscribers",
         labels={"selected_pct": "Share selecting motivation", "motivation_short": "Initial motivation"},
-        text=q6.sort_values("selected_pct", ascending=False)["selected_pct"].map(lambda value: pct(value)),
+        text=q6_ci.sort_values("selected_pct", ascending=False)["selected_pct"].map(lambda value: pct(value)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
     )
     fig_q6.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
 
+    q7_ci = q7.copy()
+    q7_ci["Total"] = q7_ci["n"].sum()
+    q7_ci = add_ci_columns(q7_ci, "n", "Total", "pct")
     fig_q7 = px.bar(
-        q7.sort_values("pct", ascending=False),
+        q7_ci.sort_values("pct", ascending=False),
         x="reason_label",
         y="pct",
         title="Primary Reason for Subscribing to Roblox Plus",
         labels={"pct": "Share of respondents", "reason_label": "Primary subscription reason"},
-        text=q7.sort_values("pct", ascending=False)["pct"].map(lambda value: pct(value)),
+        text=q7_ci.sort_values("pct", ascending=False)["pct"].map(lambda value: pct(value)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
     )
     fig_q7.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
 
+    q3_ci = q3.copy()
+    q3_ci["Total"] = q3_ci["respondents"].sum()
+    q3_ci = add_ci_columns(q3_ci, "respondents", "Total", "share")
     fig_q3 = px.bar(
-        q3.sort_values("share", ascending=False),
+        q3_ci.sort_values("share", ascending=False),
         x="primary_reason_for_using_roblox",
         y="share",
         title="Primary Reason for Using Roblox",
@@ -222,37 +271,60 @@ def main() -> None:
             "share": "Share of respondents",
             "primary_reason_for_using_roblox": "Primary reason for using Roblox",
         },
-        text=q3.sort_values("share", ascending=False)["share"].map(lambda value: pct(value)),
+        text=q3_ci.sort_values("share", ascending=False)["share"].map(lambda value: pct(value)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
     )
     fig_q3.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
 
+    q8_rank_dist_ci = add_ci_columns(q8_rank_dist, "#1 Count", "Valid Ranking N", "Top Box #1 %")
     fig_q8 = px.bar(
-        q8_rank_dist.sort_values("Top Box #1 %", ascending=False),
+        q8_rank_dist_ci.sort_values("Top Box #1 %", ascending=False),
         x="Benefit",
         y="Top Box #1 %",
         title="Plus Benefit #1 Ranking Share",
         labels={"Top Box #1 %": "Share ranking benefit #1", "Benefit": "Plus benefit"},
-        text=q8_rank_dist.sort_values("Top Box #1 %", ascending=False)["Top Box #1 %"].map(lambda value: pct(value)),
+        text=q8_rank_dist_ci.sort_values("Top Box #1 %", ascending=False)["Top Box #1 %"].map(lambda value: pct(value)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
     )
     fig_q8.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-30)
 
     rank_order = ["#1", "#2", "#3", "#4", "#5"]
+    q8_rank_long_ci = q8_rank_long.merge(
+        q8_rank_dist[["Benefit", "Valid Ranking N"]],
+        on="Benefit",
+        how="left",
+    )
+    q8_rank_long_ci = add_ci_columns(q8_rank_long_ci, "Count", "Valid Ranking N", "Percent")
     fig_q8_rank_dist = px.bar(
-        q8_rank_long,
+        q8_rank_long_ci,
         x="Rank",
         y="Percent",
         color="Benefit",
         category_orders={"Rank": rank_order},
         title="Benefit Ranking Distribution by Benefit",
         labels={"Rank": "Rank position", "Percent": "Share of valid rankings", "Benefit": "Plus benefit"},
-        text=q8_rank_long["Percent"].map(lambda value: pct(value, 0)),
+        text=q8_rank_long_ci["Percent"].map(lambda value: pct(value, 0)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
     )
     fig_q8_rank_dist.update_layout(barmode="group", yaxis_tickformat=".0%")
 
-    q9_plot = q9.rename(columns={"RETENTION_GROUP": "Retention Group"}).melt(
-        id_vars="Retention Group",
-        var_name="Churn Reason",
-        value_name="Share",
+    q9_segment_counts = (
+        analysis[["RETENTION_GROUP", "Q9_LABEL"]]
+        .fillna("Missing")
+        .groupby(["RETENTION_GROUP", "Q9_LABEL"], observed=False)
+        .size()
+        .reset_index(name="Respondents")
+    )
+    q9_segment_counts["Total"] = q9_segment_counts.groupby("RETENTION_GROUP", observed=False)["Respondents"].transform("sum")
+    q9_segment_counts["Share"] = q9_segment_counts["Respondents"] / q9_segment_counts["Total"]
+    q9_plot = add_ci_columns(
+        q9_segment_counts.rename(columns={"RETENTION_GROUP": "Retention Group", "Q9_LABEL": "Churn Reason"}),
+        "Respondents",
+        "Total",
+        "Share",
     )
     q9_overall = (
         analysis["Q9_LABEL"]
@@ -262,6 +334,8 @@ def main() -> None:
         .reset_index(name="Respondents")
     )
     q9_overall["Share"] = q9_overall["Respondents"] / q9_overall["Respondents"].sum()
+    q9_overall["Total"] = q9_overall["Respondents"].sum()
+    q9_overall = add_ci_columns(q9_overall, "Respondents", "Total", "Share")
     fig_q9_overall = px.bar(
         q9_overall.sort_values("Share", ascending=False),
         x="Churn Reason",
@@ -269,6 +343,8 @@ def main() -> None:
         title="Main Reason for Not Renewing Roblox Plus",
         labels={"Churn Reason": "Main reason for not renewing", "Share": "Share of responses"},
         text=q9_overall.sort_values("Share", ascending=False)["Share"].map(lambda value: pct(value)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
     )
     fig_q9_overall.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-30)
 
@@ -280,34 +356,55 @@ def main() -> None:
         category_orders={"Retention Group": RETENTION_ORDER},
         title="Core Churn Reason Mix by Return Intent Segment",
         labels={"Share": "Share within segment", "Retention Group": "Return intent segment"},
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
     )
     fig_q9.update_layout(barmode="stack", yaxis_tickformat=".0%")
 
-    fig_churn_keywords = px.bar(
+    churn_keywords_ci = add_ci_columns(
         churn_keywords,
+        "matching_respondents",
+        "text_respondents",
+        "share_of_voice",
+    )
+    fig_churn_keywords = px.bar(
+        churn_keywords_ci,
         x="keyword_category",
         y="share_of_voice",
         color="group",
         category_orders={"group": RETENTION_ORDER},
         title="Open-End Churn Pain Point Share of Voice",
         labels={"group": "Return intent segment", "keyword_category": "Pain point", "share_of_voice": "Share of open-end respondents"},
-        text=churn_keywords["share_of_voice"].map(lambda value: pct(value, 0)),
+        text=churn_keywords_ci["share_of_voice"].map(lambda value: pct(value, 0)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
     )
     fig_churn_keywords.update_layout(barmode="group", yaxis_tickformat=".0%", xaxis_tickangle=-25)
 
+    q12_ci = q12.copy()
+    q12_ci["Total"] = q12_ci["n"].sum()
+    q12_ci = add_ci_columns(q12_ci, "n", "Total", "pick_rate")
     fig_q12 = px.bar(
-        q12.sort_values("pick_rate", ascending=False),
+        q12_ci.sort_values("pick_rate", ascending=False),
         x="feature_short",
         y="pick_rate",
         title="Future Roadmap Demand: Q12 Feature Pick Rate",
         labels={"pick_rate": "Pick rate", "feature_short": "Future feature"},
-        text=q12.sort_values("pick_rate", ascending=False)["pick_rate"].map(lambda value: pct(value)),
+        text=q12_ci.sort_values("pick_rate", ascending=False)["pick_rate"].map(lambda value: pct(value)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
     )
     fig_q12.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
 
     backlash_plot = q13_backlash[q13_backlash["matching_respondents"].gt(0)].copy()
     fig_backlash_html = ""
     if not backlash_plot.empty:
+        backlash_plot = add_ci_columns(
+            backlash_plot,
+            "matching_respondents",
+            "text_respondents",
+            "share_of_voice",
+        )
         fig_backlash = px.bar(
             backlash_plot,
             x="feature_short",
@@ -316,6 +413,8 @@ def main() -> None:
             title="Corporate Backlash Language in Feature Appeal Open-Ends",
             labels={"feature_short": "Selected future feature", "share_of_voice": "Share of feature open-ends", "backlash_keyword": "Backlash keyword"},
             text=backlash_plot["share_of_voice"].map(lambda value: pct(value, 1)),
+            error_y="ci_error_plus",
+            error_y_minus="ci_error_minus",
         )
         fig_backlash.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
         fig_backlash_html = fig_html(fig_backlash)
@@ -709,7 +808,7 @@ def main() -> None:
     <section id="ranking" class="tab-panel">{ranking_tab}</section>
     <section id="churn" class="tab-panel">{churn_tab}</section>
     <section id="roadmap" class="tab-panel">{roadmap_tab}</section>
-    <div class="footer">Source: Roblox Plus churned subscriber SPSS survey · Analysis generated from outputs/analysis_ready_respondent_level.csv</div>
+    <div class="footer">Source: Roblox Plus churned subscriber SPSS survey · Analysis generated from outputs/analysis_ready_respondent_level.csv · Chart error bars show 95% Wilson confidence intervals for proportions.</div>
   </main>
   <script>
     document.querySelectorAll(".tab-button").forEach((button) => {{
