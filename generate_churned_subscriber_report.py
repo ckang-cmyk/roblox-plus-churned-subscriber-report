@@ -1,0 +1,640 @@
+#!/usr/bin/env python3
+"""
+Generate a static HTML readout for the Roblox Plus churned subscriber survey.
+
+Run:
+    python generate_churned_subscriber_report.py
+
+Output:
+    roblox_plus_churned_subscriber_report.html
+"""
+
+from __future__ import annotations
+
+from html import escape
+from pathlib import Path
+
+import pandas as pd
+import plotly.express as px
+import plotly.io as pio
+
+
+OUTPUT_DIR = Path("outputs")
+REPORT_PATH = Path("roblox_plus_churned_subscriber_report.html")
+
+LIKELIHOOD_ORDER = ["Very Unlikely", "Unlikely", "Maybe", "Likely", "Very Likely"]
+SENTIMENT_ORDER = ["Love it", "Like it", "Neutral", "Dislike it", "Hate it"]
+RETENTION_ORDER = ["Low Intent", "Conditional Intent", "High Intent"]
+
+FEATURE_SHORT_NAMES = {
+    "Roblox avatar items with particle effects: Get exclusive accessories made by Roblox that glow, sparkle or have moving animations": "Particle effect avatar items",
+    "Spawn/despawn effects: Customize how you appear/disappear in games": "Spawn / despawn effects",
+    "App themes: Customize Roblox app with color themes": "App themes",
+    "Profile frames: Apply a frame to profile": "Profile frames",
+    "Rich text and emojis: Use color, gradients and animations for text, including access to a broader set of emojis": "Rich text and emojis",
+    "AI-generated avatars & avatar items: Use text to generate original avatars, clothing & accessories": "AI-generated avatars/items",
+    "Custom AI-generated avatar backgrounds: Generate background from a text prompt": "AI avatar backgrounds",
+}
+
+Q7_LABELS = {
+    "1.0": "10-20% item discounts",
+    "2.0": "Free & unlimited private servers",
+    "3.0": "Free Robux transfers",
+    "4.0": "Exclusive Plus badge",
+    "5.0": "Trade & resell avatar items",
+    "6.0": "Publish avatar items",
+    "7.0": "Wanted to try it out",
+    "8.0": "Free trial",
+    "9.0": "Other",
+}
+
+Q6_SHORT_NAMES = {
+    "WhySub_Free Trial": "Free trial",
+    "WhySub_Private servers": "Private servers",
+    "WhySub_Try it out": "Wanted to try it out",
+    "WhySub_Discount": "Item discounts",
+    "WhySub_Robux transfers": "Robux transfers",
+    "WhySub_Plus badge": "Plus badge",
+    "WhySub_Trade & resell": "Trade & resell",
+    "WhySub_Publish avatar items": "Publish avatar items",
+    "WhySub_Other": "Other",
+}
+
+Q8_SHORT_NAMES = {
+    "Rank_Publish avatar items": "Publish avatar items",
+    "Rank_Trade & resell": "Trade & resell",
+    "Rank_Robux transfers": "Robux transfers",
+    "Rank_Private servers": "Private servers",
+    "Rank_Discount": "Item discounts",
+}
+
+
+def read_csv(name: str) -> pd.DataFrame:
+    path = OUTPUT_DIR / name
+    if not path.exists():
+        raise FileNotFoundError(f"Missing required input: {path}")
+    return pd.read_csv(path)
+
+
+def pct(value: float, digits: int = 1) -> str:
+    if pd.isna(value):
+        return "N/A"
+    return f"{value * 100:.{digits}f}%"
+
+
+def num(value: float, digits: int = 0) -> str:
+    if pd.isna(value):
+        return "N/A"
+    return f"{value:,.{digits}f}"
+
+
+def short_feature(label: str) -> str:
+    return FEATURE_SHORT_NAMES.get(str(label), str(label))
+
+
+def fig_html(fig, include_plotlyjs: bool = False) -> str:
+    fig.update_layout(
+        template="plotly_white",
+        font=dict(family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif", size=13),
+        margin=dict(l=40, r=24, t=70, b=45),
+        paper_bgcolor="white",
+        plot_bgcolor="white",
+    )
+    return pio.to_html(
+        fig,
+        include_plotlyjs="cdn" if include_plotlyjs else False,
+        full_html=False,
+        config={"displayModeBar": False, "responsive": True},
+    )
+
+
+def table_html(df: pd.DataFrame, classes: str = "data-table") -> str:
+    if df.empty:
+        return ""
+    safe = df.copy()
+    return safe.to_html(index=False, escape=True, classes=classes, border=0)
+
+
+def section(title: str, body: str) -> str:
+    return f"""
+    <section class="report-section">
+      <h2>{escape(title)}</h2>
+      {body}
+    </section>
+    """
+
+
+def make_kpi(label: str, value: str, note: str = "") -> str:
+    return f"""
+    <div class="kpi-card">
+      <div class="kpi-label">{escape(label)}</div>
+      <div class="kpi-value">{escape(value)}</div>
+      <div class="kpi-note">{escape(note)}</div>
+    </div>
+    """
+
+
+def main() -> None:
+    analysis = read_csv("analysis_ready_respondent_level.csv")
+    age_tenure = read_csv("demographics_age_tenure_summary.csv").rename(columns={"Unnamed: 0": "metric"})
+    gender = read_csv("demographics_gender_distribution.csv")
+    q2_q10_counts = read_csv("q2_by_q10_crosstab_counts.csv").rename(columns={"row_0": "Platform Sentiment"})
+    q2_q10_pct = read_csv("q2_by_q10_crosstab_row_pct.csv").rename(columns={"row_0": "Platform Sentiment"})
+    q2_stats = read_csv("q2_q10_association_stats.csv")
+    q3 = read_csv("q3_primary_reason_for_using_roblox.csv")
+    q5 = read_csv("q5_conversion_channel_distribution.csv")
+    q6 = read_csv("q6_initial_subscription_motivations.csv")
+    q7 = read_csv("q7_main_subscription_reason_distribution.csv")
+    q8 = read_csv("q8_feature_rank_summary.csv")
+    q9 = read_csv("q9_churn_reason_by_retention_group_row_pct.csv")
+    churn_keywords = read_csv("churn_text_keyword_share_of_voice.csv")
+    q12 = read_csv("q12_feature_pick_rates.csv")
+    q13_backlash = read_csv("q13_backlash_keywords_by_feature.csv")
+
+    total_n = len(analysis)
+    age_row = age_tenure.loc[age_tenure["metric"].eq("AGE")].iloc[0]
+    tenure_row = age_tenure.loc[age_tenure["metric"].eq("TENURE_NUMERIC")].iloc[0]
+    high_intent_n = int(analysis["Q10_SCORE"].isin([4, 5]).sum())
+    low_intent_n = int(analysis["Q10_SCORE"].isin([1, 2]).sum())
+    maybe_n = int(analysis["Q10_SCORE"].eq(3).sum())
+
+    q9_total = analysis["Q9_LABEL"].fillna("Missing").value_counts(normalize=True)
+    top_churn_reason = q9_total.index[0]
+    top_churn_pct = q9_total.iloc[0]
+    top_feature = q12.iloc[0]["feature"]
+    top_feature_pct = q12.iloc[0]["pick_rate"]
+    top_motivation = q6.iloc[0]["motivation"]
+    top_motivation_pct = q6.iloc[0]["selected_pct"]
+
+    q6["motivation_short"] = q6["motivation"].map(Q6_SHORT_NAMES).fillna(q6["motivation"])
+    q7["reason_label"] = q7["main_subscription_reason"].astype(str).map(Q7_LABELS).fillna(q7["main_subscription_reason"].astype(str))
+    q8["feature_short"] = q8["feature"].map(Q8_SHORT_NAMES).fillna(q8["feature"])
+    q12["feature_short"] = q12["feature"].map(short_feature)
+    q13_backlash["feature_short"] = q13_backlash["feature"].map(short_feature)
+
+    crosstab_plot = q2_q10_pct.melt(
+        id_vars="Platform Sentiment",
+        var_name="Likelihood to Re-subscribe",
+        value_name="Row Share",
+    )
+    fig_sentiment = px.bar(
+        crosstab_plot,
+        x="Platform Sentiment",
+        y="Row Share",
+        color="Likelihood to Re-subscribe",
+        category_orders={
+            "Platform Sentiment": SENTIMENT_ORDER,
+            "Likelihood to Re-subscribe": LIKELIHOOD_ORDER,
+        },
+        title="Likelihood to Re-subscribe by Roblox Platform Sentiment",
+        labels={"Row Share": "Share within sentiment group"},
+    )
+    fig_sentiment.update_layout(barmode="stack", yaxis_tickformat=".0%")
+
+    fig_q6 = px.bar(
+        q6.sort_values("selected_pct"),
+        x="selected_pct",
+        y="motivation_short",
+        orientation="h",
+        title="Initial Subscription Motivations Among Churned Subscribers",
+        labels={"selected_pct": "Share selecting motivation", "motivation_short": "Initial motivation"},
+        text=q6.sort_values("selected_pct")["selected_pct"].map(lambda value: pct(value)),
+    )
+    fig_q6.update_layout(xaxis_tickformat=".0%")
+
+    fig_q3 = px.bar(
+        q3.sort_values("share"),
+        x="share",
+        y="primary_reason_for_using_roblox",
+        orientation="h",
+        title="Primary Reason for Using Roblox",
+        labels={
+            "share": "Share of respondents",
+            "primary_reason_for_using_roblox": "Primary reason",
+        },
+        text=q3.sort_values("share")["share"].map(lambda value: pct(value)),
+    )
+    fig_q3.update_layout(xaxis_tickformat=".0%")
+
+    fig_q8 = px.bar(
+        q8.sort_values("importance_score"),
+        x="importance_score",
+        y="feature_short",
+        orientation="h",
+        title="Plus Benefit Baseline Value: Importance Score",
+        labels={"importance_score": "Importance score (6 - mean rank)", "feature_short": "Benefit"},
+        text=q8.sort_values("importance_score")["importance_score"].map(lambda value: f"{value:.2f}"),
+    )
+
+    q9_plot = q9.rename(columns={"RETENTION_GROUP": "Retention Group"}).melt(
+        id_vars="Retention Group",
+        var_name="Churn Reason",
+        value_name="Share",
+    )
+    fig_q9 = px.bar(
+        q9_plot,
+        x="Retention Group",
+        y="Share",
+        color="Churn Reason",
+        category_orders={"Retention Group": RETENTION_ORDER},
+        title="Core Churn Reason Mix by Return Intent Segment",
+        labels={"Share": "Share within segment"},
+    )
+    fig_q9.update_layout(barmode="stack", yaxis_tickformat=".0%")
+
+    fig_churn_keywords = px.density_heatmap(
+        churn_keywords,
+        x="group",
+        y="keyword_category",
+        z="share_of_voice",
+        category_orders={"group": RETENTION_ORDER},
+        color_continuous_scale="Reds",
+        title="Open-End Churn Pain Point Share of Voice",
+        labels={"group": "Return intent segment", "keyword_category": "Pain point", "share_of_voice": "Share of open-end respondents"},
+        text_auto=".0%",
+    )
+    fig_churn_keywords.update_layout(coloraxis_colorbar_tickformat=".0%")
+
+    fig_q12 = px.bar(
+        q12.sort_values("pick_rate"),
+        x="pick_rate",
+        y="feature_short",
+        orientation="h",
+        title="Future Roadmap Demand: Q12 Feature Pick Rate",
+        labels={"pick_rate": "Pick rate", "feature_short": "Future feature"},
+        text=q12.sort_values("pick_rate")["pick_rate"].map(lambda value: pct(value)),
+    )
+    fig_q12.update_layout(xaxis_tickformat=".0%")
+
+    backlash_plot = q13_backlash[q13_backlash["matching_respondents"].gt(0)].copy()
+    fig_backlash_html = ""
+    if not backlash_plot.empty:
+        fig_backlash = px.bar(
+            backlash_plot,
+            x="feature_short",
+            y="matching_respondents",
+            color="backlash_keyword",
+            title="Corporate Backlash Language in Feature Appeal Open-Ends",
+            labels={"feature_short": "Selected future feature", "matching_respondents": "Matching respondents", "backlash_keyword": "Backlash keyword"},
+        )
+        fig_backlash_html = fig_html(fig_backlash)
+
+    age_summary_table = pd.DataFrame(
+        [
+            ["Mean age", num(age_row["mean"], 2)],
+            ["Median age", num(age_row["50%"], 0)],
+            ["Age range", f"{num(age_row['min'], 0)} to {num(age_row['max'], 0)}"],
+            ["Mean tenure", f"{num(tenure_row['mean'], 0)} days ({num(tenure_row['mean'] / 365.25, 1)} years)"],
+            ["Median tenure", f"{num(tenure_row['50%'], 0)} days ({num(tenure_row['50%'] / 365.25, 1)} years)"],
+        ],
+        columns=["Metric", "Value"],
+    )
+    gender_table = gender.assign(pct=gender["pct"].map(pct)).rename(columns={"gender": "Gender", "n": "Respondents", "pct": "Share"})
+    q5_table = q5.head(8).assign(pct=q5.head(8)["pct"].map(pct)).rename(columns={"conversion_channel": "Discovery channel", "n": "Respondents", "pct": "Share"})
+    q3_table = q3.assign(
+        share=q3["share"].map(pct)
+    ).rename(columns={"primary_reason_for_using_roblox": "Primary reason", "respondents": "Respondents", "share": "Share"})
+    q6_table = q6[["motivation_short", "selected_n", "selected_pct"]].head(9).assign(
+        selected_pct=q6["selected_pct"].head(9).map(pct)
+    ).rename(columns={"motivation_short": "Initial motivation", "selected_n": "Respondents", "selected_pct": "Share"})
+    q7_table = q7[["reason_label", "n", "pct"]].head(9).assign(
+        pct=q7["pct"].head(9).map(pct)
+    ).rename(columns={"reason_label": "Main subscription reason", "n": "Respondents", "pct": "Share"})
+    q8_table = q8[["feature_short", "mean", "importance_score"]].assign(
+        mean=q8["mean"].map(lambda value: f"{value:.2f}"),
+        importance_score=q8["importance_score"].map(lambda value: f"{value:.2f}"),
+    ).rename(columns={"feature_short": "Plus benefit", "mean": "Mean rank", "importance_score": "Importance score"})
+    q12_table = q12[["feature_short", "n", "pick_rate"]].assign(
+        pick_rate=q12["pick_rate"].map(pct)
+    ).rename(columns={"feature_short": "Future feature", "n": "Respondents", "pick_rate": "Pick rate"})
+
+    chi = q2_stats.set_index("metric")["value"]
+    low_robux = churn_keywords[
+        churn_keywords["group"].eq("Low Intent")
+        & churn_keywords["keyword_category"].eq("Robux Absence / Premium Rebrand")
+    ]["share_of_voice"].iloc[0]
+    low_finance = churn_keywords[
+        churn_keywords["group"].eq("Low Intent")
+        & churn_keywords["keyword_category"].eq("Financial Strain")
+    ]["share_of_voice"].iloc[0]
+
+    hero = f"""
+    <header class="hero">
+      <p class="eyebrow">Month-1 Post-Launch Readout · Churned Subscribers</p>
+      <h1>Roblox Plus Churned Subscriber Survey</h1>
+      <p class="lede">This report summarizes why early Roblox Plus subscribers cancelled, which benefits still carry value, and which future roadmap ideas can help recover hesitant users.</p>
+      <div class="kpi-grid">
+        {make_kpi("Sample", f"n={total_n:,}", "13+ churned Roblox Plus subscribers")}
+        {make_kpi("Top Churn Reason", str(top_churn_reason), pct(top_churn_pct))}
+        {make_kpi("High Return Intent", pct(high_intent_n / total_n), f"{high_intent_n:,} likely / very likely")}
+        {make_kpi("Top Future Feature", short_feature(top_feature), pct(top_feature_pct))}
+      </div>
+    </header>
+    """
+
+    executive_tab = f"""
+    <div class="takeaway">
+      <h2>Executive Summary</h2>
+      <p>Churn is not primarily a lack-of-awareness problem. Respondents are long-tenured Roblox users who tried Plus, then cancelled because the bundle did not meet expectations around Robux, financial value, or ongoing need.</p>
+      <ol>
+        <li><strong>Robux absence is the clearest product gap:</strong> “It did not come with monthly Robux” is the top structured churn reason at {pct(top_churn_pct)}.</li>
+        <li><strong>Return intent is recoverable but conditional:</strong> {pct((maybe_n + high_intent_n) / total_n)} are at least maybe willing to re-subscribe, while {pct(low_intent_n / total_n)} are unlikely or very unlikely.</li>
+        <li><strong>Future demand skews cosmetic and expressive:</strong> {short_feature(top_feature)} leads the roadmap choices at {pct(top_feature_pct)}, followed by spawn effects and app themes.</li>
+      </ol>
+    </div>
+    <div class="two-column">
+      <div>
+        <h3>Return Intent Funnel</h3>
+        <div class="funnel">
+          <div><span>All churned respondents</span><strong>{total_n:,}</strong></div>
+          <div><span>Maybe to return</span><strong>{maybe_n:,}</strong></div>
+          <div><span>Likely / very likely</span><strong>{high_intent_n:,}</strong></div>
+          <div><span>Low intent</span><strong>{low_intent_n:,}</strong></div>
+        </div>
+      </div>
+      <div>
+        <h3>Signal Strength</h3>
+        <p>Platform sentiment and likelihood to re-subscribe are meaningfully associated: chi-square p-value {chi['chi_square_p_value']:.2e}, Spearman rho {chi['spearman_rho']:.3f}. More positive Roblox sentiment translates into higher return intent, but does not eliminate product-specific churn concerns.</p>
+        <p>Among Low Intent open-end respondents, financial language appears in {pct(low_finance)} and Robux/Premium language appears in {pct(low_robux)}.</p>
+      </div>
+    </div>
+    {fig_html(fig_sentiment, include_plotlyjs=True)}
+    """
+
+    sample_tab = f"""
+    {section("Sample Characteristics", f'''
+      <p>The churned subscriber sample is young by age but mature by account history. Median tenure is {num(tenure_row["50%"], 0)} days, or roughly {num(tenure_row["50%"] / 365.25, 1)} years.</p>
+      <div class="table-grid">
+        <div><h3>Age and Tenure</h3>{table_html(age_summary_table)}</div>
+        <div><h3>Gender</h3>{table_html(gender_table)}</div>
+      </div>
+    ''')}
+    {section("Primary Reason for Using Roblox", f'''
+      <p>Entertainment is the largest core platform use case among churned Roblox Plus subscribers, followed by spending time with friends and the variety of games and experiences.</p>
+      <div class="chart-block">{fig_html(fig_q3)}</div>
+      {table_html(q3_table)}
+    ''')}
+    {section("Discovery and Initial Subscription Path", f'''
+      <p>Social media and the Buy Robux page were the largest discovery channels. The free trial was the dominant initial subscription motivation at {pct(top_motivation_pct)}, suggesting trial-to-paid conversion quality is central to churn prevention.</p>
+      <div class="chart-block">{fig_html(fig_q6)}</div>
+      <div class="table-grid">
+        <div><h3>Top Discovery Channels</h3>{table_html(q5_table)}</div>
+        <div><h3>Main Subscription Reason</h3>{table_html(q7_table)}</div>
+      </div>
+    ''')}
+    """
+
+    churn_tab = f"""
+    {section("Why Users Cancelled", f'''
+      <p>The structured churn data points to a product-value mismatch: monthly Robux is the most common cancellation reason across all return-intent groups. Open-end keywords show financial pressure is even more common than Robux language among Low Intent respondents.</p>
+      {fig_html(fig_q9)}
+      {fig_html(fig_churn_keywords)}
+    ''')}
+    {section("Initial Motivations and Benefit Valuation", f'''
+      <p>Users came in through trialing, private servers, and discounts, but baseline benefit rankings are tightly clustered. This suggests no single shipped benefit fully anchors the bundle for churned subscribers.</p>
+      <div class="chart-block">{fig_html(fig_q8)}</div>
+      <div class="table-grid">
+        <div><h3>Initial Subscription Motivations</h3>{table_html(q6_table)}</div>
+        <div><h3>Benefit Rank Summary</h3>{table_html(q8_table)}</div>
+      </div>
+    ''')}
+    """
+
+    roadmap_tab = f"""
+    {section("Future Roadmap Demand", f'''
+      <p>The strongest roadmap candidates are visible identity and in-experience expression features. AI concepts sit at the bottom of explicit demand, and the backlash scan shows negative language is rare but concentrated around AI and customization categories.</p>
+      {fig_html(fig_q12)}
+      {table_html(q12_table)}
+    ''')}
+    {section("AI and Corporate Backlash Watchouts", f'''
+      <p>Backlash keywords are not broadly prevalent, but terms like “slop,” “AI garbage,” “investor,” and “greed” do appear in Q13 open-ends. Treat AI features as higher-risk roadmap bets unless paired with strong creator-quality positioning.</p>
+      {fig_backlash_html}
+    ''')}
+    """
+
+    html = f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Roblox Plus Churned Subscriber Survey Report</title>
+  <style>
+    :root {{
+      --bg: #f6f7fb;
+      --paper: #ffffff;
+      --ink: #14171f;
+      --muted: #5b6472;
+      --line: #dfe3ea;
+      --accent: #2f5fd0;
+      --accent-soft: #eef3ff;
+    }}
+    * {{ box-sizing: border-box; }}
+    body {{
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }}
+    .page {{
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 24px 56px;
+    }}
+    .hero, .tab-panel, .report-section, .takeaway {{
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }}
+    .hero {{
+      padding: 36px;
+      margin-bottom: 18px;
+    }}
+    .eyebrow {{
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }}
+    h1 {{
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+    }}
+    h2 {{
+      margin: 0 0 12px;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+    }}
+    h3 {{
+      margin: 0 0 10px;
+      font-size: 16px;
+    }}
+    .lede {{
+      max-width: 820px;
+      color: var(--muted);
+      font-size: 17px;
+      margin: 14px 0 28px;
+    }}
+    .kpi-grid {{
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }}
+    .kpi-card {{
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: var(--accent-soft);
+    }}
+    .kpi-label {{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }}
+    .kpi-value {{
+      margin-top: 8px;
+      font-size: 23px;
+      font-weight: 800;
+      line-height: 1.15;
+    }}
+    .kpi-note {{
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }}
+    .tabs {{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 18px 0;
+    }}
+    .tab-button {{
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }}
+    .tab-button.active {{
+      background: var(--ink);
+      color: white;
+      border-color: var(--ink);
+    }}
+    .tab-panel {{
+      display: none;
+      padding: 24px;
+    }}
+    .tab-panel.active {{ display: block; }}
+    .takeaway {{
+      padding: 22px;
+      margin-bottom: 18px;
+    }}
+    .takeaway p, .report-section p {{
+      color: var(--muted);
+      margin-top: 0;
+    }}
+    .report-section {{
+      padding: 22px;
+      margin-bottom: 18px;
+    }}
+    .two-column, .table-grid {{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin: 18px 0;
+    }}
+    .funnel {{
+      display: grid;
+      gap: 10px;
+    }}
+    .funnel div {{
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #fafbfe;
+    }}
+    .funnel span {{ color: var(--muted); }}
+    .funnel strong {{ font-size: 18px; }}
+    .chart-block {{
+      margin: 16px 0;
+    }}
+    table.data-table {{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: white;
+    }}
+    .data-table th {{
+      text-align: left;
+      color: var(--muted);
+      background: #f3f5f9;
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+    }}
+    .data-table td {{
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+      vertical-align: top;
+    }}
+    .footer {{
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 24px;
+      text-align: center;
+    }}
+    @media (max-width: 860px) {{
+      .kpi-grid, .two-column, .table-grid {{ grid-template-columns: 1fr; }}
+      h1 {{ font-size: 28px; }}
+      .hero {{ padding: 24px; }}
+    }}
+  </style>
+</head>
+<body>
+  <main class="page">
+    {hero}
+    <nav class="tabs" aria-label="Report sections">
+      <button class="tab-button active" data-tab="executive">Executive Summary</button>
+      <button class="tab-button" data-tab="sample">Sample & Subscription Path</button>
+      <button class="tab-button" data-tab="churn">Churn Deep Dive</button>
+      <button class="tab-button" data-tab="roadmap">Future Roadmap</button>
+    </nav>
+    <section id="executive" class="tab-panel active">{executive_tab}</section>
+    <section id="sample" class="tab-panel">{sample_tab}</section>
+    <section id="churn" class="tab-panel">{churn_tab}</section>
+    <section id="roadmap" class="tab-panel">{roadmap_tab}</section>
+    <div class="footer">Source: Roblox Plus churned subscriber SPSS survey · Analysis generated from outputs/analysis_ready_respondent_level.csv</div>
+  </main>
+  <script>
+    document.querySelectorAll(".tab-button").forEach((button) => {{
+      button.addEventListener("click", () => {{
+        const tab = button.dataset.tab;
+        document.querySelectorAll(".tab-button").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach((panel) => panel.classList.remove("active"));
+        button.classList.add("active");
+        document.getElementById(tab).classList.add("active");
+        window.dispatchEvent(new Event("resize"));
+      }});
+    }});
+  </script>
+</body>
+</html>
+"""
+
+    REPORT_PATH.write_text(html, encoding="utf-8")
+    Path("index.html").write_text(html, encoding="utf-8")
+    print(f"Wrote {REPORT_PATH.resolve()}")
+
+
+if __name__ == "__main__":
+    main()
