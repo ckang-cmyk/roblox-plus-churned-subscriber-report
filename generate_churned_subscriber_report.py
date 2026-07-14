@@ -239,15 +239,15 @@ def main() -> None:
     rank_order = ["#1", "#2", "#3", "#4", "#5"]
     fig_q8_rank_dist = px.bar(
         q8_rank_long,
-        x="Benefit",
+        x="Rank",
         y="Percent",
-        color="Rank",
+        color="Benefit",
         category_orders={"Rank": rank_order},
         title="Benefit Ranking Distribution by Benefit",
-        labels={"Benefit": "Plus benefit", "Percent": "Share of valid rankings", "Rank": "Rank position"},
+        labels={"Rank": "Rank position", "Percent": "Share of valid rankings", "Benefit": "Plus benefit"},
         text=q8_rank_long["Percent"].map(lambda value: pct(value, 0)),
     )
-    fig_q8_rank_dist.update_layout(barmode="stack", yaxis_tickformat=".0%", xaxis_tickangle=-30)
+    fig_q8_rank_dist.update_layout(barmode="group", yaxis_tickformat=".0%")
 
     q9_plot = q9.rename(columns={"RETENTION_GROUP": "Retention Group"}).melt(
         id_vars="Retention Group",
