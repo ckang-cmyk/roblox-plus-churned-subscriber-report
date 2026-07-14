@@ -32,6 +32,12 @@ LIKELIHOOD_COLORS = {
     "Likely": "#8fd19e",
     "Very Likely": "#2e8b57",
 }
+GENDER_COLORS = {
+    "Male": "#9ecae1",
+    "Female": "#f7b6d2",
+    "Unknown": "#c5b0d5",
+    "Missing": "#d9d9d9",
+}
 
 FEATURE_SHORT_NAMES = {
     "Roblox avatar items with particle effects: Get exclusive accessories made by Roblox that glow, sparkle or have moving animations": "Particle effect avatar items",
@@ -545,7 +551,7 @@ def main() -> None:
     q12_segments = analysis[["Q12_LABEL", "GENDER_LABEL", "AGE"]].copy()
     q12_segments["feature_short"] = q12_segments["Q12_LABEL"].map(short_feature)
     q12_segments["GENDER_LABEL"] = q12_segments["GENDER_LABEL"].fillna("Missing")
-    q12_segments["AGE_GROUP"] = pd.cut(
+    q12_segments["Age Range"] = pd.cut(
         q12_segments["AGE"],
         bins=[12, 17, 24, 34, 200],
         labels=["13-17", "18-24", "25-34", "35+"],
@@ -568,6 +574,7 @@ def main() -> None:
         color="GENDER_LABEL",
         barmode="group",
         category_orders={"feature_short": feature_order, "GENDER_LABEL": ["Male", "Female", "Unknown", "Missing"]},
+        color_discrete_map=GENDER_COLORS,
         title="Future Feature Demand by Gender",
         labels={"feature_short": "Future feature", "Pick Rate": "Pick rate within gender", "GENDER_LABEL": "Gender"},
         text=q12_gender["Pick Rate"].map(lambda value: pct(value, 0)),
@@ -593,6 +600,7 @@ def main() -> None:
         color="GENDER_LABEL",
         barmode="stack",
         category_orders={"feature_short": feature_order, "GENDER_LABEL": ["Male", "Female", "Unknown", "Missing"]},
+        color_discrete_map=GENDER_COLORS,
         title="Gender Composition Within Each Selected Future Feature",
         labels={"feature_short": "Future feature", "Share": "Share of feature respondents", "GENDER_LABEL": "Gender"},
         error_y="ci_error_plus",
@@ -602,22 +610,22 @@ def main() -> None:
 
     q12_age = (
         q12_segments.dropna(subset=["feature_short"])
-        .groupby(["AGE_GROUP", "feature_short"], observed=False)
+        .groupby(["Age Range", "feature_short"], observed=False)
         .size()
         .reset_index(name="Respondents")
     )
-    q12_age["Total"] = q12_age.groupby("AGE_GROUP", observed=False)["Respondents"].transform("sum")
+    q12_age["Total"] = q12_age.groupby("Age Range", observed=False)["Respondents"].transform("sum")
     q12_age["Pick Rate"] = q12_age["Respondents"] / q12_age["Total"]
     q12_age = add_ci_columns(q12_age, "Respondents", "Total", "Pick Rate")
     fig_q12_age = px.bar(
         q12_age,
         x="feature_short",
         y="Pick Rate",
-        color="AGE_GROUP",
+        color="Age Range",
         barmode="group",
-        category_orders={"feature_short": feature_order, "AGE_GROUP": ["13-17", "18-24", "25-34", "35+", "Missing"]},
-        title="Future Feature Demand by Age Group",
-        labels={"feature_short": "Future feature", "Pick Rate": "Pick rate within age group", "AGE_GROUP": "Age group"},
+        category_orders={"feature_short": feature_order, "Age Range": ["13-17", "18-24", "25-34", "35+", "Missing"]},
+        title="Future Feature Demand by Age Range",
+        labels={"feature_short": "Future feature", "Pick Rate": "Pick rate within age range", "Age Range": "Age range"},
         text=q12_age["Pick Rate"].map(lambda value: pct(value, 0)),
         error_y="ci_error_plus",
         error_y_minus="ci_error_minus",
