@@ -947,10 +947,11 @@ def main() -> None:
 
     ranking_tab = f"""
     {section("Current Plus Benefit Ranking Across Segments", f'''
-      <p>The ranking exercise shows how the current Plus bundle is valued before purchase, after churn, and among retained subscribers. To reduce visual clutter, this view focuses first on each benefit’s #1 share, then uses heatmaps to show both top-rank pull and bottom-rank rejection.</p>
+      <p>The ranking exercise shows how the current Plus bundle is valued before purchase, after churn, and among retained subscribers. The simplified views focus on #1 pull and #5 rejection, while the full distribution chart keeps the complete rank-by-rank view across all benefits and segments.</p>
       {fig_html(fig_rank_top)}
       {fig_html(fig_rank_top_heatmap)}
       {fig_html(fig_rank_bottom_heatmap)}
+      {fig_html(fig_rank)}
       {table_html(top_rank_table)}
     ''')}
     """
