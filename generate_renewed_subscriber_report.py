@@ -85,6 +85,15 @@ POST_REPLACEMENTS = {
     'data-tab="churn"': 'data-tab="renewal"',
     'id="churn"': 'id="renewal"',
     "Analysis generated from outputs/analysis_ready_respondent_level.csv": "Analysis generated from renewed_outputs/analysis_ready_respondent_level.csv",
+    "The structured renewal data shows which parts of Plus subscribers say are most valuable, then splits that value mix by likelihood to stay subscribed. Open-end keywords summarize the language renewed subscribers use when explaining their stay intent.": "The structured renewal data shows which parts of Plus subscribers say are most valuable, then splits that value mix by likelihood to stay subscribed. <strong>Key insight:</strong> Discount is the dominant value driver at 42.4%, followed by private servers at 26.3% and feeling like Plus is a better deal at 11.8%; together, these top three account for 80.5% of renewed subscribers. The value mix differs significantly by stay intent (chi-square p=8.91e-18): high-intent subscribers over-index on Discount (44.7% vs. 34.3% among low-intent subscribers) and Better deal (12.9% vs. 6.2%), while low-intent subscribers are more likely to choose Other (13.7%).",
+    "Saving Robux with the 10-20% item discounts": "Discount",
+    "Free & unlimited private servers": "Private servers",
+    "I feel like I’m getting a better deal": "Better deal",
+    "Send Robux for free to anyone": "Free Robux transfers",
+    "I feel more exclusive/recognized with the Plus badge on my profile": "Plus badge / exclusivity",
+    "Trade & resell avatar items": "Trade & resell",
+    "I feel more connected with friends": "Friend connection",
+    "Other (Please specify)": "Other",
 }
 
 
