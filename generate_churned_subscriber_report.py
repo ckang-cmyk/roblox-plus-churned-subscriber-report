@@ -75,6 +75,75 @@ Q8_SHORT_NAMES = {
     "Rank_Discount": "Item discounts",
 }
 
+FEATURE_THEME_RULES = {
+    "Command of presence / in-game flair": [
+        "spawn",
+        "despawn",
+        "aura",
+        "effect",
+        "entrance",
+        "appear",
+        "disappear",
+        "cool",
+        "fun",
+        "flashy",
+    ],
+    "Identity customization / self-expression": [
+        "custom",
+        "customize",
+        "theme",
+        "color",
+        "profile",
+        "frame",
+        "express",
+        "personality",
+        "look",
+        "style",
+    ],
+    "Nostalgia / status cosmetics": [
+        "classic",
+        "old roblox",
+        "builders club",
+        "exclusive",
+        "rare",
+        "status",
+        "stand out",
+        "particle",
+        "sparkle",
+        "glow",
+    ],
+    "Social communication": [
+        "chat",
+        "text",
+        "emoji",
+        "emojis",
+        "communicate",
+        "friends",
+        "social",
+        "message",
+    ],
+    "Creation / UGC tools": [
+        "create",
+        "creator",
+        "ugc",
+        "avatar item",
+        "generate",
+        "make",
+        "design",
+        "prompt",
+    ],
+    "AI skepticism / quality risk": [
+        "ai",
+        "slop",
+        "garbage",
+        "hate ai",
+        "lazy",
+        "human",
+        "artist",
+        "creativity",
+    ],
+}
+
 
 def read_csv(name: str) -> pd.DataFrame:
     path = OUTPUT_DIR / name
@@ -125,6 +194,30 @@ def add_ci_columns(
     working["ci_error_plus"] = working["ci_upper"] - working[proportion_column]
     working["ci_error_minus"] = working[proportion_column] - working["ci_lower"]
     return working
+
+
+def dominant_theme(text: str) -> str:
+    lowered = str(text or "").lower()
+    scores = {
+        theme: sum(1 for keyword in keywords if keyword in lowered)
+        for theme, keywords in FEATURE_THEME_RULES.items()
+    }
+    best_theme, best_score = max(scores.items(), key=lambda item: item[1])
+    return best_theme if best_score > 0 else "General interest / unspecified appeal"
+
+
+def representative_quotes(series: pd.Series, limit: int = 3) -> str:
+    quotes = []
+    for value in series.dropna().astype(str):
+        cleaned = " ".join(value.replace("|", " ").split())
+        if len(cleaned) < 12:
+            continue
+        if len(cleaned) > 180:
+            cleaned = f"{cleaned[:177].rstrip()}..."
+        quotes.append(f'"{cleaned}"')
+        if len(quotes) >= limit:
+            break
+    return " ".join(quotes)
 
 
 def short_feature(label: str) -> str:
@@ -484,6 +577,29 @@ def main() -> None:
     fig_q12_gender.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
     keep_percent_labels_off_error_bars(fig_q12_gender)
 
+    q12_gender_composition = (
+        q12_segments.dropna(subset=["feature_short"])
+        .groupby(["feature_short", "GENDER_LABEL"], observed=False)
+        .size()
+        .reset_index(name="Respondents")
+    )
+    q12_gender_composition["Total"] = q12_gender_composition.groupby("feature_short", observed=False)["Respondents"].transform("sum")
+    q12_gender_composition["Share"] = q12_gender_composition["Respondents"] / q12_gender_composition["Total"]
+    q12_gender_composition = add_ci_columns(q12_gender_composition, "Respondents", "Total", "Share")
+    fig_q12_gender_composition = px.bar(
+        q12_gender_composition,
+        x="feature_short",
+        y="Share",
+        color="GENDER_LABEL",
+        barmode="stack",
+        category_orders={"feature_short": feature_order, "GENDER_LABEL": ["Male", "Female", "Unknown", "Missing"]},
+        title="Gender Composition Within Each Selected Future Feature",
+        labels={"feature_short": "Future feature", "Share": "Share of feature respondents", "GENDER_LABEL": "Gender"},
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
+    )
+    fig_q12_gender_composition.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
+
     q12_age = (
         q12_segments.dropna(subset=["feature_short"])
         .groupby(["AGE_GROUP", "feature_short"], observed=False)
@@ -508,6 +624,27 @@ def main() -> None:
     )
     fig_q12_age.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
     keep_percent_labels_off_error_bars(fig_q12_age)
+
+    q13_themes = analysis[["Q12_LABEL", "Q13_TEXT_COMBINED"]].copy()
+    q13_themes["feature_short"] = q13_themes["Q12_LABEL"].map(short_feature)
+    q13_themes["Q13_TEXT_COMBINED"] = q13_themes["Q13_TEXT_COMBINED"].fillna("").astype(str).str.strip()
+    q13_themes = q13_themes[q13_themes["Q13_TEXT_COMBINED"].ne("")]
+    q13_themes["Dominant theme"] = q13_themes["Q13_TEXT_COMBINED"].map(dominant_theme)
+    theme_rows = []
+    for feature, feature_df in q13_themes.groupby("feature_short", sort=False):
+        theme_counts = feature_df["Dominant theme"].value_counts()
+        dominant = theme_counts.index[0]
+        dominant_df = feature_df[feature_df["Dominant theme"].eq(dominant)]
+        theme_rows.append(
+            {
+                "Selected Feature": feature,
+                "Feature Respondents": len(feature_df),
+                "Dominant theme": dominant,
+                "Theme Share": pct(theme_counts.iloc[0] / len(feature_df)),
+                "Representative Quotes": representative_quotes(dominant_df["Q13_TEXT_COMBINED"]),
+            }
+        )
+    q13_theme_table = pd.DataFrame(theme_rows)
 
     backlash_plot = q13_backlash[q13_backlash["matching_respondents"].gt(0)].copy()
     fig_backlash_html = ""
@@ -707,6 +844,15 @@ def main() -> None:
     """
 
     roadmap_tab = f"""
+    <div class="takeaway">
+      <h2>Future Roadmap / New Plus Features</h2>
+      <ul>
+        <li><strong>Top conversion catalysts:</strong> {q12_table.iloc[0]["Future feature"]} ({q12_table.iloc[0]["Pick rate"]}), {q12_table.iloc[1]["Future feature"]} ({q12_table.iloc[1]["Pick rate"]}), and {q12_table.iloc[2]["Future feature"]} ({q12_table.iloc[2]["Pick rate"]}) lead explicit feature demand.</li>
+        <li><strong>Demographic trajectories:</strong> Age and gender cuts show where feature demand is broad-based versus concentrated among specific segments.</li>
+        <li><strong>Qualitative motivations:</strong> Q13 open-ends are summarized by dominant theme and representative quotes for each selected feature.</li>
+        <li><strong>AI risk:</strong> Generative AI concepts remain low-demand and are monitored separately for backlash language.</li>
+      </ul>
+    </div>
     {section("Future Roadmap Demand", f'''
       <p>The strongest roadmap candidates are visible identity and in-experience expression features. AI concepts sit at the bottom of explicit demand, and the backlash scan shows negative language is rare but concentrated around AI and customization categories.</p>
       {fig_html(fig_q12)}
@@ -715,7 +861,12 @@ def main() -> None:
     {section("Feature Demand Differences by Gender and Age", f'''
       <p>These cuts compare pick rates within each demographic segment. Use them to identify whether roadmap demand is broad-based or concentrated among specific user groups.</p>
       {fig_html(fig_q12_gender)}
+      {fig_html(fig_q12_gender_composition)}
       {fig_html(fig_q12_age)}
+    ''')}
+    {section("Open-End Feedback: Dominant Theme Across Each Feature", f'''
+      <p>Each feature’s Q13 open-ends were classified with a lightweight keyword theme model, then representative quotes were selected from the dominant theme.</p>
+      {table_html(q13_theme_table)}
     ''')}
     {section("AI and Corporate Backlash Watchouts", f'''
       <p>Backlash keywords are not broadly prevalent, but terms like “slop,” “AI garbage,” “investor,” and “greed” do appear in Q13 open-ends. Treat AI features as higher-risk roadmap bets unless paired with strong creator-quality positioning.</p>
