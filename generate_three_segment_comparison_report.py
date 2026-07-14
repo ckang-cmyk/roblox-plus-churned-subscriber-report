@@ -157,6 +157,21 @@ Q7_LABELS = {
     "8.0": "Free trial",
     "9.0": "Other",
 }
+BENEFIT_CANONICAL_LABELS = {
+    "Discount": "Discounts",
+    "Discounts": "Discounts",
+    "Item discounts": "Discounts",
+    "10-20% item discounts": "Discounts",
+    "Private servers": "Private servers",
+    "Free / unlimited private servers": "Private servers",
+    "Robux transfers": "Free Robux transfers",
+    "Free Robux transfers": "Free Robux transfers",
+    "Zero-fee Robux transfers": "Free Robux transfers",
+    "Trade and resell": "Trade & resell avatar items",
+    "Trade & resell": "Trade & resell avatar items",
+    "Trade & resell avatar items": "Trade & resell avatar items",
+    "Publish avatar items": "Publish avatar items",
+}
 CHURN_REASON_LABELS = {
     "It did not come with monthly Robux": "No monthly Robux",
     "Too expensive / not enough value": "Too expensive / weak value",
@@ -408,19 +423,7 @@ def load_rank_distribution(path: str, segment: str) -> tuple[pd.DataFrame, pd.Da
     wide = pd.read_csv(path)
     wide["Segment"] = segment
     for col in ["Benefit"]:
-        wide[col] = wide[col].replace(
-            {
-                "Discount": "Discounts",
-                "Item discounts": "Discounts",
-                "10-20% item discounts": "Discounts",
-                "Free / unlimited private servers": "Private servers",
-                "Robux transfers": "Free Robux transfers",
-                "Zero-fee Robux transfers": "Free Robux transfers",
-                "Trade and resell": "Trade & resell avatar items",
-                "Trade & resell": "Trade & resell avatar items",
-                "Trade & resell avatar items": "Trade & resell avatar items",
-            }
-        )
+        wide[col] = wide[col].replace(BENEFIT_CANONICAL_LABELS)
     long_rows = []
     for _, row in wide.iterrows():
         for rank in range(1, 6):
@@ -666,6 +669,13 @@ def main() -> None:
     renewed_wide, renewed_long = load_rank_distribution("renewed_outputs/q8_benefit_ranking_distribution.csv", "Renewed subscribers")
     rank_wide = pd.concat([non_wide, churn_wide, renewed_wide], ignore_index=True)
     rank_long = pd.concat([non_long, churn_long, renewed_long], ignore_index=True)
+    rank_wide["Benefit"] = rank_wide["Benefit"].replace(BENEFIT_CANONICAL_LABELS)
+    rank_long["Benefit"] = rank_long["Benefit"].replace(BENEFIT_CANONICAL_LABELS)
+    rank_long = (
+        rank_long.groupby(["Segment", "Benefit", "Rank"], observed=False, as_index=False)
+        .agg({"Count": "sum", "Valid Ranking N": "first"})
+    )
+    rank_long["Percent"] = rank_long["Count"] / rank_long["Valid Ranking N"]
     rank_long_ci = add_ci_columns(rank_long, "Count", "Valid Ranking N", "Percent")
     fig_rank = px.bar(
         rank_long_ci,
