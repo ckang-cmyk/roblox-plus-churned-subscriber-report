@@ -113,6 +113,39 @@ RENEWED_VALUE_LABELS = {
     "I feel more connected with friends": "Friend connection",
     "Publish avatar items": "Publish avatar items",
 }
+SUBSCRIPTION_REASON_LABELS = {
+    "WhySub_Free Trial": "Free trial",
+    "WhySub_Private servers": "Private servers",
+    "WhySub_Try it out": "Wanted to try it out",
+    "WhySub_Discount": "Discounts",
+    "WhySub_Robux transfers": "Free Robux transfers",
+    "WhySub_Plus badge": "Plus badge",
+    "WhySub_Trade & resell": "Trade & resell",
+    "WhySub_Publish avatar items": "Publish avatar items",
+    "WhySub_Other": "Other",
+    "10% discount on items (increases to 20% after 2 months)": "Discounts",
+    "Free & unlimited private servers": "Private servers",
+    "Send Robux for free to anyone": "Free Robux transfers",
+    "There was a free trial": "Free trial",
+    "I just wanted to try it out": "Wanted to try it out",
+    "Having exclusive Plus badge on my profile": "Plus badge",
+    "Trade & resell avatar items": "Trade & resell",
+    "Publish avatar items": "Publish avatar items",
+    "Other (Please specify)": "Other",
+    "10-20% item discounts": "Discounts",
+    "Exclusive Plus badge": "Plus badge",
+}
+Q7_LABELS = {
+    "1.0": "Discounts",
+    "2.0": "Private servers",
+    "3.0": "Free Robux transfers",
+    "4.0": "Plus badge",
+    "5.0": "Trade & resell",
+    "6.0": "Publish avatar items",
+    "7.0": "Wanted to try it out",
+    "8.0": "Free trial",
+    "9.0": "Other",
+}
 CHURN_REASON_LABELS = {
     "It did not come with monthly Robux": "No monthly Robux",
     "Too expensive / not enough value": "Too expensive / weak value",
@@ -409,6 +442,37 @@ def load_renewed_specific() -> pd.DataFrame:
     return overall_distribution(pd.DataFrame({"value": values}), "value", "Value Driver").sort_values("Share", ascending=False)
 
 
+def normalize_subscription_reason(value: object) -> str:
+    text = str(value).strip()
+    return SUBSCRIPTION_REASON_LABELS.get(text, Q7_LABELS.get(text, text if text else "Missing"))
+
+
+def load_subscription_reasons() -> tuple[pd.DataFrame, pd.DataFrame]:
+    select_frames = []
+    primary_frames = []
+    sources = [
+        ("Churned subscribers", Path("outputs")),
+        ("Renewed subscribers", Path("renewed_outputs")),
+    ]
+    for segment, output_dir in sources:
+        q6 = pd.read_csv(output_dir / "q6_initial_subscription_motivations.csv")
+        q6["Segment"] = segment
+        q6["Reason"] = q6["motivation"].map(normalize_subscription_reason)
+        q6 = q6.rename(columns={"selected_n": "Respondents", "respondents": "Total", "selected_pct": "Share"})
+        select_frames.append(q6[["Segment", "Reason", "Respondents", "Total", "Share"]])
+
+        q7 = pd.read_csv(output_dir / "q7_main_subscription_reason_distribution.csv")
+        q7["Segment"] = segment
+        q7["Reason"] = q7["main_subscription_reason"].map(normalize_subscription_reason)
+        q7 = q7.rename(columns={"n": "Respondents", "pct": "Share"})
+        q7["Total"] = q7["Respondents"].sum()
+        primary_frames.append(q7[["Segment", "Reason", "Respondents", "Total", "Share"]])
+
+    select_all = add_ci_columns(pd.concat(select_frames, ignore_index=True), "Respondents", "Total", "Share")
+    primary = add_ci_columns(pd.concat(primary_frames, ignore_index=True), "Respondents", "Total", "Share")
+    return select_all, primary
+
+
 def main() -> None:
     combined = load_segments()
     total_n = len(combined)
@@ -602,6 +666,60 @@ def main() -> None:
         .rename(columns={"Benefit": "Top #1 ranked benefit"})
     )
 
+    subscribe_select_all, subscribe_primary = load_subscription_reasons()
+    subscribe_reason_order = (
+        subscribe_select_all.groupby("Reason")["Respondents"].sum().sort_values(ascending=False).index.tolist()
+    )
+    fig_subscribe_select = px.bar(
+        subscribe_select_all,
+        x="Reason",
+        y="Share",
+        color="Segment",
+        barmode="group",
+        category_orders={"Segment": ["Churned subscribers", "Renewed subscribers"], "Reason": subscribe_reason_order},
+        color_discrete_map=SEGMENT_COLORS,
+        title="Reasons for Initially Subscribing: Select All",
+        text=subscribe_select_all["Share"].map(lambda v: pct(v, 0)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
+    )
+    fig_subscribe_select.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-30, xaxis_tickfont_size=10, margin=dict(b=130))
+    keep_labels_clear(fig_subscribe_select)
+
+    primary_reason_order = (
+        subscribe_primary.groupby("Reason")["Respondents"].sum().sort_values(ascending=False).index.tolist()
+    )
+    fig_subscribe_primary = px.bar(
+        subscribe_primary,
+        x="Reason",
+        y="Share",
+        color="Segment",
+        barmode="group",
+        category_orders={"Segment": ["Churned subscribers", "Renewed subscribers"], "Reason": primary_reason_order},
+        color_discrete_map=SEGMENT_COLORS,
+        title="Primary Reason for Initially Subscribing: Choose One",
+        text=subscribe_primary["Share"].map(lambda v: pct(v, 0)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
+    )
+    fig_subscribe_primary.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-30, xaxis_tickfont_size=10, margin=dict(b=130))
+    keep_labels_clear(fig_subscribe_primary)
+
+    primary_reason_table = subscribe_primary.pivot_table(
+        index="Segment",
+        columns="Reason",
+        values="Respondents",
+        aggfunc="sum",
+        fill_value=0,
+        observed=False,
+    )
+    _, subscribe_primary_p, _, subscribe_primary_v = cramers_v(primary_reason_table)
+    top_subscribe_reasons = (
+        subscribe_primary.sort_values(["Segment", "Share"], ascending=[True, False])
+        .groupby("Segment", as_index=False)
+        .head(1)[["Segment", "Reason", "Share"]]
+    )
+
     non_select_all, non_primary = load_non_specific()
     fig_non_select = px.bar(
         non_select_all,
@@ -721,6 +839,15 @@ def main() -> None:
     ''')}
     """
 
+    subscribing_tab = f"""
+    {section("Reasons for Subscribing: Churned vs. Renewed", f'''
+      <p>This tab compares why former subscribers and retained subscribers initially signed up for Roblox Plus. The select-all chart captures the broad motivation set, while the single-choice chart identifies the primary hook.</p>
+      <p><strong>Key insight:</strong> churned subscribers were more trial-led, with <strong>{top_subscribe_reasons[top_subscribe_reasons["Segment"].eq("Churned subscribers")]["Reason"].iloc[0]}</strong> as their top primary reason at {pct(top_subscribe_reasons[top_subscribe_reasons["Segment"].eq("Churned subscribers")]["Share"].iloc[0])}. Renewed subscribers were more value-led, with <strong>{top_subscribe_reasons[top_subscribe_reasons["Segment"].eq("Renewed subscribers")]["Reason"].iloc[0]}</strong> as their top primary reason at {pct(top_subscribe_reasons[top_subscribe_reasons["Segment"].eq("Renewed subscribers")]["Share"].iloc[0])}. The primary-reason mix differs significantly between churned and renewed subscribers (chi-square p={subscribe_primary_p:.2e}, Cramer's V={subscribe_primary_v:.3f}).</p>
+      {fig_html(fig_subscribe_select)}
+      {fig_html(fig_subscribe_primary)}
+    ''')}
+    """
+
     roadmap_tab = f"""
     {section("Future Plus Feature Demand Across Segments", f'''
       <p>Future feature choice differs significantly by segment (chi-square p={feature_p:.2e}). Non-subscribers lean more toward conversion catalysts such as spawn/despawn effects and app themes, while renewed users are especially strong on particle effect avatar items.</p>
@@ -833,6 +960,7 @@ def main() -> None:
     <nav class="tabs" aria-label="Report sections">
       <button class="tab-button active" data-tab="executive">Executive Summary</button>
       <button class="tab-button" data-tab="baseline">Shared Baseline</button>
+      <button class="tab-button" data-tab="subscribing">Reasons for Subscribing</button>
       <button class="tab-button" data-tab="ranking">Benefit Rankings</button>
       <button class="tab-button" data-tab="roadmap">Future Roadmap</button>
       <button class="tab-button" data-tab="non-subs">Non-Subscriber Barriers</button>
@@ -841,6 +969,7 @@ def main() -> None:
     </nav>
     <section id="executive" class="tab-panel active">{executive_tab}</section>
     <section id="baseline" class="tab-panel">{baseline_tab}</section>
+    <section id="subscribing" class="tab-panel">{subscribing_tab}</section>
     <section id="ranking" class="tab-panel">{ranking_tab}</section>
     <section id="roadmap" class="tab-panel">{roadmap_tab}</section>
     <section id="non-subs" class="tab-panel">{non_tab}</section>
