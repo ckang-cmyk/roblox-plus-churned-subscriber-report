@@ -429,7 +429,12 @@ def main() -> None:
         error_y="ci_error_plus",
         error_y_minus="ci_error_minus",
     )
-    fig_q6.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
+    fig_q6.update_layout(
+        yaxis_tickformat=".0%",
+        xaxis_tickangle=-35,
+        xaxis_tickfont_size=10,
+        margin=dict(b=130),
+    )
     keep_percent_labels_off_error_bars(fig_q6)
 
     q7_ci = q7.copy()
