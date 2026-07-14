@@ -181,17 +181,18 @@ def main() -> None:
     )
     fig_sentiment = px.bar(
         crosstab_plot,
-        x="Platform Sentiment",
-        y="Row Share",
+        x="Row Share",
+        y="Platform Sentiment",
         color="Likelihood to Re-subscribe",
+        orientation="h",
         category_orders={
             "Platform Sentiment": SENTIMENT_ORDER,
             "Likelihood to Re-subscribe": LIKELIHOOD_ORDER,
         },
         title="Likelihood to Re-subscribe by Roblox Platform Sentiment",
-        labels={"Row Share": "Share within sentiment group"},
+        labels={"Row Share": "Share within sentiment group", "Platform Sentiment": "Platform sentiment"},
     )
-    fig_sentiment.update_layout(barmode="stack", yaxis_tickformat=".0%")
+    fig_sentiment.update_layout(barmode="stack", xaxis_tickformat=".0%")
 
     fig_q6 = px.bar(
         q6.sort_values("selected_pct"),
@@ -223,34 +224,36 @@ def main() -> None:
         title="Primary Reason for Using Roblox",
         labels={
             "share": "Share of respondents",
-            "primary_reason_for_using_roblox": "Primary reason",
+            "primary_reason_for_using_roblox": "Primary reason for using Roblox",
         },
         text=q3.sort_values("share")["share"].map(lambda value: pct(value)),
     )
     fig_q3.update_layout(xaxis_tickformat=".0%")
 
     fig_q8 = px.bar(
-        q8.sort_values("importance_score"),
-        x="importance_score",
-        y="feature_short",
+        q8_rank_dist.sort_values("Top Box #1 %"),
+        x="Top Box #1 %",
+        y="Benefit",
         orientation="h",
-        title="Plus Benefit Baseline Value: Importance Score",
-        labels={"importance_score": "Importance score (6 - mean rank)", "feature_short": "Benefit"},
-        text=q8.sort_values("importance_score")["importance_score"].map(lambda value: f"{value:.2f}"),
+        title="Plus Benefit #1 Ranking Share",
+        labels={"Top Box #1 %": "Share ranking benefit #1", "Benefit": "Plus benefit"},
+        text=q8_rank_dist.sort_values("Top Box #1 %")["Top Box #1 %"].map(lambda value: pct(value)),
     )
+    fig_q8.update_layout(xaxis_tickformat=".0%")
 
     rank_order = ["#1", "#2", "#3", "#4", "#5"]
     fig_q8_rank_dist = px.bar(
         q8_rank_long,
-        x="Benefit",
-        y="Percent",
+        x="Percent",
+        y="Benefit",
         color="Rank",
+        orientation="h",
         category_orders={"Rank": rank_order},
         title="Benefit Ranking Distribution by Benefit",
         labels={"Benefit": "Plus benefit", "Percent": "Share of valid rankings", "Rank": "Rank position"},
         text=q8_rank_long["Percent"].map(lambda value: pct(value, 0)),
     )
-    fig_q8_rank_dist.update_layout(barmode="stack", yaxis_tickformat=".0%")
+    fig_q8_rank_dist.update_layout(barmode="stack", xaxis_tickformat=".0%")
 
     q9_plot = q9.rename(columns={"RETENTION_GROUP": "Retention Group"}).melt(
         id_vars="Retention Group",
@@ -259,27 +262,28 @@ def main() -> None:
     )
     fig_q9 = px.bar(
         q9_plot,
-        x="Retention Group",
-        y="Share",
+        x="Share",
+        y="Retention Group",
         color="Churn Reason",
+        orientation="h",
         category_orders={"Retention Group": RETENTION_ORDER},
         title="Core Churn Reason Mix by Return Intent Segment",
-        labels={"Share": "Share within segment"},
+        labels={"Share": "Share within segment", "Retention Group": "Return intent segment"},
     )
-    fig_q9.update_layout(barmode="stack", yaxis_tickformat=".0%")
+    fig_q9.update_layout(barmode="stack", xaxis_tickformat=".0%")
 
-    fig_churn_keywords = px.density_heatmap(
+    fig_churn_keywords = px.bar(
         churn_keywords,
-        x="group",
+        x="share_of_voice",
         y="keyword_category",
-        z="share_of_voice",
+        color="group",
+        orientation="h",
         category_orders={"group": RETENTION_ORDER},
-        color_continuous_scale="Reds",
         title="Open-End Churn Pain Point Share of Voice",
         labels={"group": "Return intent segment", "keyword_category": "Pain point", "share_of_voice": "Share of open-end respondents"},
-        text_auto=".0%",
+        text=churn_keywords["share_of_voice"].map(lambda value: pct(value, 0)),
     )
-    fig_churn_keywords.update_layout(coloraxis_colorbar_tickformat=".0%")
+    fig_churn_keywords.update_layout(barmode="group", xaxis_tickformat=".0%")
 
     fig_q12 = px.bar(
         q12.sort_values("pick_rate"),
@@ -297,12 +301,15 @@ def main() -> None:
     if not backlash_plot.empty:
         fig_backlash = px.bar(
             backlash_plot,
-            x="feature_short",
-            y="matching_respondents",
+            x="share_of_voice",
+            y="feature_short",
             color="backlash_keyword",
+            orientation="h",
             title="Corporate Backlash Language in Feature Appeal Open-Ends",
-            labels={"feature_short": "Selected future feature", "matching_respondents": "Matching respondents", "backlash_keyword": "Backlash keyword"},
+            labels={"feature_short": "Selected future feature", "share_of_voice": "Share of feature open-ends", "backlash_keyword": "Backlash keyword"},
+            text=backlash_plot["share_of_voice"].map(lambda value: pct(value, 1)),
         )
+        fig_backlash.update_layout(xaxis_tickformat=".0%")
         fig_backlash_html = fig_html(fig_backlash)
 
     age_summary_table = pd.DataFrame(
