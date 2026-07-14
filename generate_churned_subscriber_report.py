@@ -140,6 +140,16 @@ def fig_html(fig, include_plotlyjs: bool = False) -> str:
     )
 
 
+def keep_percent_labels_off_error_bars(fig) -> None:
+    """Place percent labels inside bars so they do not overlap CI whiskers."""
+    fig.update_traces(
+        textposition="inside",
+        insidetextanchor="middle",
+        cliponaxis=False,
+    )
+    fig.update_layout(uniformtext_minsize=9, uniformtext_mode="hide")
+
+
 def table_html(df: pd.DataFrame, classes: str = "data-table") -> str:
     if df.empty:
         return ""
@@ -243,6 +253,7 @@ def main() -> None:
         error_y_minus="ci_error_minus",
     )
     fig_q6.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
+    keep_percent_labels_off_error_bars(fig_q6)
 
     q7_ci = q7.copy()
     q7_ci["Total"] = q7_ci["n"].sum()
@@ -258,6 +269,7 @@ def main() -> None:
         error_y_minus="ci_error_minus",
     )
     fig_q7.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
+    keep_percent_labels_off_error_bars(fig_q7)
 
     q3_ci = q3.copy()
     q3_ci["Total"] = q3_ci["respondents"].sum()
@@ -276,6 +288,7 @@ def main() -> None:
         error_y_minus="ci_error_minus",
     )
     fig_q3.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
+    keep_percent_labels_off_error_bars(fig_q3)
 
     q8_rank_dist_ci = add_ci_columns(q8_rank_dist, "#1 Count", "Valid Ranking N", "Top Box #1 %")
     fig_q8 = px.bar(
@@ -289,6 +302,7 @@ def main() -> None:
         error_y_minus="ci_error_minus",
     )
     fig_q8.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-30)
+    keep_percent_labels_off_error_bars(fig_q8)
 
     rank_order = ["#1", "#2", "#3", "#4", "#5"]
     q8_rank_long_ci = q8_rank_long.merge(
@@ -310,6 +324,7 @@ def main() -> None:
         error_y_minus="ci_error_minus",
     )
     fig_q8_rank_dist.update_layout(barmode="group", yaxis_tickformat=".0%")
+    keep_percent_labels_off_error_bars(fig_q8_rank_dist)
 
     q9_segment_counts = (
         analysis[["RETENTION_GROUP", "Q9_LABEL"]]
@@ -347,6 +362,7 @@ def main() -> None:
         error_y_minus="ci_error_minus",
     )
     fig_q9_overall.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-30)
+    keep_percent_labels_off_error_bars(fig_q9_overall)
 
     fig_q9 = px.bar(
         q9_plot,
@@ -380,6 +396,7 @@ def main() -> None:
         error_y_minus="ci_error_minus",
     )
     fig_churn_keywords.update_layout(barmode="group", yaxis_tickformat=".0%", xaxis_tickangle=-25)
+    keep_percent_labels_off_error_bars(fig_churn_keywords)
 
     q12_ci = q12.copy()
     q12_ci["Total"] = q12_ci["n"].sum()
@@ -395,6 +412,7 @@ def main() -> None:
         error_y_minus="ci_error_minus",
     )
     fig_q12.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
+    keep_percent_labels_off_error_bars(fig_q12)
 
     backlash_plot = q13_backlash[q13_backlash["matching_respondents"].gt(0)].copy()
     fig_backlash_html = ""
@@ -417,6 +435,7 @@ def main() -> None:
             error_y_minus="ci_error_minus",
         )
         fig_backlash.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
+        keep_percent_labels_off_error_bars(fig_backlash)
         fig_backlash_html = fig_html(fig_backlash)
 
     age_summary_table = pd.DataFrame(
