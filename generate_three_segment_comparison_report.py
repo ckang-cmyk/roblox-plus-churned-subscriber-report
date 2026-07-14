@@ -34,7 +34,7 @@ BENEFIT_COLORS = {
     "Discounts": "#4e79a7",
     "Private servers": "#f28e2b",
     "Free Robux transfers": "#59a14f",
-    "Trade & resell": "#e15759",
+    "Trade & resell avatar items": "#e15759",
     "Publish avatar items": "#b07aa1",
 }
 LIKELIHOOD_COLORS = {
@@ -93,7 +93,7 @@ BENEFIT_LABELS = {
     1: "Discounts",
     2: "Private servers",
     3: "Free Robux transfers",
-    4: "Trade & resell",
+    4: "Trade & resell avatar items",
     5: "Publish avatar items",
 }
 NON_SUB_REASON_LABELS = {
@@ -116,7 +116,7 @@ RENEWED_VALUE_LABELS = {
     "Send Robux for free to anyone": "Free Robux transfers",
     "Other (Please specify)": "Other",
     "I feel more exclusive/recognized with the Plus badge on my profile": "Feel more exclusive with Plus badge",
-    "Trade & resell avatar items": "Trade & resell",
+    "Trade & resell avatar items": "Trade & resell avatar items",
     "I feel more connected with friends": "Friend connection",
     "Publish avatar items": "Publish avatar items",
 }
@@ -127,16 +127,20 @@ SUBSCRIPTION_REASON_LABELS = {
     "WhySub_Discount": "Discounts",
     "WhySub_Robux transfers": "Free Robux transfers",
     "WhySub_Plus badge": "Plus badge",
-    "WhySub_Trade & resell": "Trade & resell",
+    "WhySub_Trade & resell": "Trade & resell avatar items",
     "WhySub_Publish avatar items": "Publish avatar items",
     "WhySub_Other": "Other",
+    "Discount": "Discounts",
     "10% discount on items (increases to 20% after 2 months)": "Discounts",
     "Free & unlimited private servers": "Private servers",
+    "Robux transfers": "Free Robux transfers",
     "Send Robux for free to anyone": "Free Robux transfers",
     "There was a free trial": "Free trial",
     "I just wanted to try it out": "Wanted to try it out",
     "Having exclusive Plus badge on my profile": "Plus badge",
-    "Trade & resell avatar items": "Trade & resell",
+    "Trade and resell": "Trade & resell avatar items",
+    "Trade & resell": "Trade & resell avatar items",
+    "Trade & resell avatar items": "Trade & resell avatar items",
     "Publish avatar items": "Publish avatar items",
     "Other (Please specify)": "Other",
     "10-20% item discounts": "Discounts",
@@ -147,7 +151,7 @@ Q7_LABELS = {
     "2.0": "Private servers",
     "3.0": "Free Robux transfers",
     "4.0": "Plus badge",
-    "5.0": "Trade & resell",
+    "5.0": "Trade & resell avatar items",
     "6.0": "Publish avatar items",
     "7.0": "Wanted to try it out",
     "8.0": "Free trial",
@@ -404,7 +408,19 @@ def load_rank_distribution(path: str, segment: str) -> tuple[pd.DataFrame, pd.Da
     wide = pd.read_csv(path)
     wide["Segment"] = segment
     for col in ["Benefit"]:
-        wide[col] = wide[col].replace({"Item discounts": "Discounts", "10-20% item discounts": "Discounts", "Free / unlimited private servers": "Private servers", "Zero-fee Robux transfers": "Free Robux transfers"})
+        wide[col] = wide[col].replace(
+            {
+                "Discount": "Discounts",
+                "Item discounts": "Discounts",
+                "10-20% item discounts": "Discounts",
+                "Free / unlimited private servers": "Private servers",
+                "Robux transfers": "Free Robux transfers",
+                "Zero-fee Robux transfers": "Free Robux transfers",
+                "Trade and resell": "Trade & resell avatar items",
+                "Trade & resell": "Trade & resell avatar items",
+                "Trade & resell avatar items": "Trade & resell avatar items",
+            }
+        )
     long_rows = []
     for _, row in wide.iterrows():
         for rank in range(1, 6):
@@ -915,7 +931,7 @@ def main() -> None:
     {section("Renewed Subscriber Deep Dive", f'''
       <p>Renewed subscribers show what is already working in the Plus bundle. This tab focuses on the one benefit respondents say is most valuable.</p>
       {fig_html(fig_renewed)}
-      <p><strong>Key insight:</strong> {top_values["Value Driver"]} is the dominant value driver at {pct(top_values["Share"])}, followed by {renewed_values.iloc[1]["Value Driver"]} at {pct(renewed_values.iloc[1]["Share"])}. Retention messaging should reinforce these tangible benefits while testing whether future cosmetic features can add emotional upside.</p>
+      <p><strong>Key insight:</strong> {top_values["Value Driver"]} are the dominant value driver at {pct(top_values["Share"])}, followed by {renewed_values.iloc[1]["Value Driver"]} at {pct(renewed_values.iloc[1]["Share"])}. Retention messaging should reinforce these tangible benefits while testing whether future cosmetic features can add emotional upside.</p>
     ''')}
     """
 
