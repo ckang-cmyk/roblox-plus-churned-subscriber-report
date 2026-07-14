@@ -289,7 +289,9 @@ def main() -> None:
     q2_q10_counts = read_csv("q2_by_q10_crosstab_counts.csv").rename(columns={"row_0": "Platform Sentiment"})
     q2_q10_pct = read_csv("q2_by_q10_crosstab_row_pct.csv").rename(columns={"row_0": "Platform Sentiment"})
     q2_stats = read_csv("q2_q10_association_stats.csv")
+    q2_distribution = read_csv("q2_platform_sentiment_distribution.csv")
     q3 = read_csv("q3_primary_reason_for_using_roblox.csv")
+    q4_distribution = read_csv("q4_plus_familiarity_distribution.csv")
     q5 = read_csv("q5_conversion_channel_distribution.csv")
     q6 = read_csv("q6_initial_subscription_motivations.csv")
     q7 = read_csv("q7_main_subscription_reason_distribution.csv")
@@ -322,6 +324,47 @@ def main() -> None:
     q12["feature_short"] = q12["feature"].map(short_feature)
     q13_backlash["feature_short"] = q13_backlash["feature"].map(short_feature)
     feature_order = q12["feature_short"].tolist()
+
+    q2_distribution = add_ci_columns(
+        q2_distribution.assign(Total=q2_distribution["respondents"].sum()),
+        "respondents",
+        "Total",
+        "share",
+    )
+    fig_q2_distribution = px.bar(
+        q2_distribution,
+        x="platform_sentiment",
+        y="share",
+        category_orders={"platform_sentiment": SENTIMENT_ORDER},
+        title="Roblox Platform Sentiment in the Past Month",
+        labels={"platform_sentiment": "Roblox platform sentiment", "share": "Share of respondents"},
+        text=q2_distribution["share"].map(lambda value: pct(value)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
+    )
+    fig_q2_distribution.update_layout(yaxis_tickformat=".0%")
+    keep_percent_labels_off_error_bars(fig_q2_distribution)
+
+    familiarity_order = ["Not familiar at all", "Barely familiar", "Somewhat familiar", "Very familiar", "Extremely familiar"]
+    q4_distribution = add_ci_columns(
+        q4_distribution.assign(Total=q4_distribution["respondents"].sum()),
+        "respondents",
+        "Total",
+        "share",
+    )
+    fig_q4_distribution = px.bar(
+        q4_distribution,
+        x="plus_familiarity",
+        y="share",
+        category_orders={"plus_familiarity": familiarity_order},
+        title="Roblox Plus Familiarity",
+        labels={"plus_familiarity": "Roblox Plus familiarity", "share": "Share of respondents"},
+        text=q4_distribution["share"].map(lambda value: pct(value)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
+    )
+    fig_q4_distribution.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-20)
+    keep_percent_labels_off_error_bars(fig_q4_distribution)
 
     q10_overall = (
         analysis["Q10_LABEL"]
@@ -423,6 +466,23 @@ def main() -> None:
     )
     fig_q3.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
     keep_percent_labels_off_error_bars(fig_q3)
+
+    q5_chart = q5[q5["conversion_channel"].ne("Missing")].copy()
+    q5_chart = q5_chart.head(8)
+    q5_chart["Total"] = q5["n"].sum()
+    q5_chart = add_ci_columns(q5_chart, "n", "Total", "pct")
+    fig_q5 = px.bar(
+        q5_chart.sort_values("pct", ascending=False),
+        x="conversion_channel",
+        y="pct",
+        title="Top Discovery Channels for Roblox Plus",
+        labels={"conversion_channel": "Discovery channel", "pct": "Share of respondents"},
+        text=q5_chart.sort_values("pct", ascending=False)["pct"].map(lambda value: pct(value)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
+    )
+    fig_q5.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
+    keep_percent_labels_off_error_bars(fig_q5)
 
     q8_rank_dist_ci = add_ci_columns(q8_rank_dist, "#1 Count", "Valid Ranking N", "Top Box #1 %")
     fig_q8 = px.bar(
@@ -790,6 +850,11 @@ def main() -> None:
         <div><h3>Gender</h3>{table_html(gender_table)}</div>
       </div>
     ''')}
+    {section("Roblox Sentiment and Plus Familiarity", f'''
+      <p>These baseline measures show how churned subscribers felt about Roblox recently and how familiar they were with Roblox Plus at the time of survey response.</p>
+      {fig_html(fig_q2_distribution)}
+      {fig_html(fig_q4_distribution)}
+    ''')}
     {section("Primary Reason for Using Roblox", f'''
       <p>Entertainment is the largest core platform use case among churned Roblox Plus subscribers, followed by spending time with friends and the variety of games and experiences.</p>
       <div class="chart-block">{fig_html(fig_q3)}</div>
@@ -797,6 +862,7 @@ def main() -> None:
     ''')}
     {section("Discovery and Initial Subscription Path", f'''
       <p>Social media and the Buy Robux page were the largest discovery channels. This helps show where churned subscribers first encountered Plus before their initial subscription decision.</p>
+      {fig_html(fig_q5)}
       <div class="table-grid">
         <div><h3>Top Discovery Channels</h3>{table_html(q5_table)}</div>
       </div>
