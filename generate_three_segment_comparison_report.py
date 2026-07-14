@@ -30,6 +30,13 @@ SEGMENT_COLORS = {
     "Churned subscribers": "#d98282",
     "Renewed subscribers": "#6fbf8b",
 }
+BENEFIT_COLORS = {
+    "Discounts": "#4e79a7",
+    "Private servers": "#f28e2b",
+    "Free Robux transfers": "#59a14f",
+    "Trade & resell": "#e15759",
+    "Publish avatar items": "#b07aa1",
+}
 LIKELIHOOD_COLORS = {
     "Very Unlikely": "#c0392b",
     "Unlikely": "#f28e8e",
@@ -650,7 +657,12 @@ def main() -> None:
         y="Percent",
         color="Benefit",
         facet_col="Segment",
-        category_orders={"Segment": SEGMENT_ORDER, "Rank": ["#1", "#2", "#3", "#4", "#5"]},
+        category_orders={
+            "Segment": SEGMENT_ORDER,
+            "Rank": ["#1", "#2", "#3", "#4", "#5"],
+            "Benefit": list(BENEFIT_COLORS),
+        },
+        color_discrete_map=BENEFIT_COLORS,
         title="Benefit Ranking Distribution Across Segments",
         labels={"Percent": "Share of valid rankings"},
         error_y="ci_error_plus",
@@ -670,6 +682,12 @@ def main() -> None:
     subscribe_reason_order = (
         subscribe_select_all.groupby("Reason")["Respondents"].sum().sort_values(ascending=False).index.tolist()
     )
+    subscribe_select_all["Reason"] = pd.Categorical(
+        subscribe_select_all["Reason"],
+        categories=subscribe_reason_order,
+        ordered=True,
+    )
+    subscribe_select_all = subscribe_select_all.sort_values(["Reason", "Segment"])
     fig_subscribe_select = px.bar(
         subscribe_select_all,
         x="Reason",
@@ -683,12 +701,25 @@ def main() -> None:
         error_y="ci_error_plus",
         error_y_minus="ci_error_minus",
     )
-    fig_subscribe_select.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-30, xaxis_tickfont_size=10, margin=dict(b=130))
+    fig_subscribe_select.update_layout(
+        yaxis_tickformat=".0%",
+        xaxis_tickangle=-30,
+        xaxis_tickfont_size=10,
+        xaxis_categoryorder="array",
+        xaxis_categoryarray=subscribe_reason_order,
+        margin=dict(b=130),
+    )
     keep_labels_clear(fig_subscribe_select)
 
     primary_reason_order = (
         subscribe_primary.groupby("Reason")["Respondents"].sum().sort_values(ascending=False).index.tolist()
     )
+    subscribe_primary["Reason"] = pd.Categorical(
+        subscribe_primary["Reason"],
+        categories=primary_reason_order,
+        ordered=True,
+    )
+    subscribe_primary = subscribe_primary.sort_values(["Reason", "Segment"])
     fig_subscribe_primary = px.bar(
         subscribe_primary,
         x="Reason",
@@ -702,7 +733,14 @@ def main() -> None:
         error_y="ci_error_plus",
         error_y_minus="ci_error_minus",
     )
-    fig_subscribe_primary.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-30, xaxis_tickfont_size=10, margin=dict(b=130))
+    fig_subscribe_primary.update_layout(
+        yaxis_tickformat=".0%",
+        xaxis_tickangle=-30,
+        xaxis_tickfont_size=10,
+        xaxis_categoryorder="array",
+        xaxis_categoryarray=primary_reason_order,
+        margin=dict(b=130),
+    )
     keep_labels_clear(fig_subscribe_primary)
 
     primary_reason_table = subscribe_primary.pivot_table(
