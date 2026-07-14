@@ -254,6 +254,24 @@ def main() -> None:
         var_name="Churn Reason",
         value_name="Share",
     )
+    q9_overall = (
+        analysis["Q9_LABEL"]
+        .fillna("Missing")
+        .value_counts(dropna=False)
+        .rename_axis("Churn Reason")
+        .reset_index(name="Respondents")
+    )
+    q9_overall["Share"] = q9_overall["Respondents"] / q9_overall["Respondents"].sum()
+    fig_q9_overall = px.bar(
+        q9_overall.sort_values("Share", ascending=False),
+        x="Churn Reason",
+        y="Share",
+        title="Main Reason for Not Renewing Roblox Plus",
+        labels={"Churn Reason": "Main reason for not renewing", "Share": "Share of responses"},
+        text=q9_overall.sort_values("Share", ascending=False)["Share"].map(lambda value: pct(value)),
+    )
+    fig_q9_overall.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-30)
+
     fig_q9 = px.bar(
         q9_plot,
         x="Retention Group",
@@ -468,6 +486,7 @@ def main() -> None:
     churn_tab = f"""
     {section("Why Users Cancelled", f'''
       <p>The structured churn data points to a product-value mismatch: monthly Robux is the most common cancellation reason across all return-intent groups. Open-end keywords show financial pressure is even more common than Robux language among Low Intent respondents.</p>
+      {fig_html(fig_q9_overall)}
       {fig_html(fig_q9)}
       {fig_html(fig_churn_keywords)}
     ''')}
