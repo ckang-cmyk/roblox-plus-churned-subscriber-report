@@ -696,6 +696,56 @@ def main() -> None:
     )
     fig_rank.update_layout(barmode="group", yaxis_tickformat=".0%")
 
+    rank_top_ci = rank_long_ci[rank_long_ci["Rank"].eq("#1")].copy()
+    rank_top_ci["Benefit"] = pd.Categorical(rank_top_ci["Benefit"], categories=list(BENEFIT_COLORS), ordered=True)
+    rank_top_ci = rank_top_ci.sort_values(["Segment", "Benefit"])
+    fig_rank_top = px.bar(
+        rank_top_ci,
+        x="Benefit",
+        y="Percent",
+        color="Benefit",
+        facet_col="Segment",
+        category_orders={"Segment": SEGMENT_ORDER, "Benefit": list(BENEFIT_COLORS)},
+        color_discrete_map=BENEFIT_COLORS,
+        title="Top-Ranked Plus Benefit Share by Segment",
+        labels={"Percent": "Share ranking benefit #1"},
+        text=rank_top_ci["Percent"].map(lambda v: pct(v, 0)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
+    )
+    fig_rank_top.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-30, xaxis_tickfont_size=10, margin=dict(b=120))
+    keep_labels_clear(fig_rank_top)
+
+    top_rank_heatmap = (
+        rank_long_ci[rank_long_ci["Rank"].eq("#1")]
+        .pivot(index="Benefit", columns="Segment", values="Percent")
+        .reindex(index=list(BENEFIT_COLORS), columns=SEGMENT_ORDER)
+    )
+    fig_rank_top_heatmap = px.imshow(
+        top_rank_heatmap,
+        text_auto=".0%",
+        aspect="auto",
+        color_continuous_scale="Blues",
+        title="Heatmap: Share Ranking Each Benefit #1",
+        labels={"x": "Segment", "y": "Benefit", "color": "#1 share"},
+    )
+    fig_rank_top_heatmap.update_layout(coloraxis_colorbar_tickformat=".0%")
+
+    bottom_rank_heatmap = (
+        rank_long_ci[rank_long_ci["Rank"].eq("#5")]
+        .pivot(index="Benefit", columns="Segment", values="Percent")
+        .reindex(index=list(BENEFIT_COLORS), columns=SEGMENT_ORDER)
+    )
+    fig_rank_bottom_heatmap = px.imshow(
+        bottom_rank_heatmap,
+        text_auto=".0%",
+        aspect="auto",
+        color_continuous_scale="Reds",
+        title="Heatmap: Share Ranking Each Benefit #5",
+        labels={"x": "Segment", "y": "Benefit", "color": "#5 share"},
+    )
+    fig_rank_bottom_heatmap.update_layout(coloraxis_colorbar_tickformat=".0%")
+
     top_rank_table = (
         rank_wide.sort_values(["Segment", "#1 %"], ascending=[True, False])
         .groupby("Segment", as_index=False)
@@ -897,8 +947,10 @@ def main() -> None:
 
     ranking_tab = f"""
     {section("Current Plus Benefit Ranking Across Segments", f'''
-      <p>The ranking exercise shows how the current Plus bundle is valued before purchase, after churn, and among retained subscribers. A high #1 share indicates strong headline appeal; a high #5 share indicates polarization or low relevance.</p>
-      {fig_html(fig_rank)}
+      <p>The ranking exercise shows how the current Plus bundle is valued before purchase, after churn, and among retained subscribers. To reduce visual clutter, this view focuses first on each benefit’s #1 share, then uses heatmaps to show both top-rank pull and bottom-rank rejection.</p>
+      {fig_html(fig_rank_top)}
+      {fig_html(fig_rank_top_heatmap)}
+      {fig_html(fig_rank_bottom_heatmap)}
       {table_html(top_rank_table)}
     ''')}
     """
