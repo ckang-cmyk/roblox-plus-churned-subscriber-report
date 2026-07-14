@@ -25,6 +25,13 @@ REPORT_PATH = Path("roblox_plus_churned_subscriber_report.html")
 LIKELIHOOD_ORDER = ["Very Unlikely", "Unlikely", "Maybe", "Likely", "Very Likely"]
 SENTIMENT_ORDER = ["Love it", "Like it", "Neutral", "Dislike it", "Hate it"]
 RETENTION_ORDER = ["Low Intent", "Conditional Intent", "High Intent"]
+LIKELIHOOD_COLORS = {
+    "Very Unlikely": "#8b0000",
+    "Unlikely": "#f28e8e",
+    "Maybe": "#f39c12",
+    "Likely": "#8fd19e",
+    "Very Likely": "#006b3c",
+}
 
 FEATURE_SHORT_NAMES = {
     "Roblox avatar items with particle effects: Get exclusive accessories made by Roblox that glow, sparkle or have moving animations": "Particle effect avatar items",
@@ -238,6 +245,7 @@ def main() -> None:
         },
         title="Likelihood to Re-subscribe by Roblox Platform Sentiment",
         labels={"Row Share": "Share within sentiment group", "Platform Sentiment": "Platform sentiment"},
+        color_discrete_map=LIKELIHOOD_COLORS,
     )
     fig_sentiment.update_layout(barmode="stack", yaxis_tickformat=".0%")
 
