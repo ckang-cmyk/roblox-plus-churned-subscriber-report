@@ -26,11 +26,11 @@ LIKELIHOOD_ORDER = ["Very Unlikely", "Unlikely", "Maybe", "Likely", "Very Likely
 SENTIMENT_ORDER = ["Love it", "Like it", "Neutral", "Dislike it", "Hate it"]
 RETENTION_ORDER = ["Low Intent", "Conditional Intent", "High Intent"]
 LIKELIHOOD_COLORS = {
-    "Very Unlikely": "#8b0000",
+    "Very Unlikely": "#c0392b",
     "Unlikely": "#f28e8e",
-    "Maybe": "#f39c12",
+    "Maybe": "#9e9e9e",
     "Likely": "#8fd19e",
-    "Very Likely": "#006b3c",
+    "Very Likely": "#2e8b57",
 }
 
 FEATURE_SHORT_NAMES = {
@@ -222,6 +222,32 @@ def main() -> None:
     q8["feature_short"] = q8["feature"].map(Q8_SHORT_NAMES).fillna(q8["feature"])
     q12["feature_short"] = q12["feature"].map(short_feature)
     q13_backlash["feature_short"] = q13_backlash["feature"].map(short_feature)
+
+    q10_overall = (
+        analysis["Q10_LABEL"]
+        .fillna("Missing")
+        .value_counts(dropna=False)
+        .rename_axis("Likelihood to Re-subscribe")
+        .reset_index(name="Respondents")
+    )
+    q10_overall["Share"] = q10_overall["Respondents"] / q10_overall["Respondents"].sum()
+    q10_overall["Total"] = q10_overall["Respondents"].sum()
+    q10_overall = add_ci_columns(q10_overall, "Respondents", "Total", "Share")
+    fig_q10_overall = px.bar(
+        q10_overall,
+        x="Likelihood to Re-subscribe",
+        y="Share",
+        color="Likelihood to Re-subscribe",
+        category_orders={"Likelihood to Re-subscribe": LIKELIHOOD_ORDER},
+        color_discrete_map=LIKELIHOOD_COLORS,
+        title="Overall Likelihood to Re-subscribe",
+        labels={"Share": "Share of responses", "Likelihood to Re-subscribe": "Likelihood to re-subscribe"},
+        text=q10_overall["Share"].map(lambda value: pct(value)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
+    )
+    fig_q10_overall.update_layout(yaxis_tickformat=".0%", showlegend=False)
+    keep_percent_labels_off_error_bars(fig_q10_overall)
 
     crosstab_counts_plot = q2_q10_counts.melt(
         id_vars="Platform Sentiment",
@@ -546,7 +572,8 @@ def main() -> None:
         <p>Among Low Intent open-end respondents, financial language appears in {pct(low_finance)} and Robux/Premium language appears in {pct(low_robux)}.</p>
       </div>
     </div>
-    {fig_html(fig_sentiment, include_plotlyjs=True)}
+    {fig_html(fig_q10_overall, include_plotlyjs=True)}
+    {fig_html(fig_sentiment)}
     """
 
     sample_tab = f"""
