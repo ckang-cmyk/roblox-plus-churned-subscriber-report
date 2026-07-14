@@ -553,8 +553,8 @@ def main() -> None:
     q12_segments["GENDER_LABEL"] = q12_segments["GENDER_LABEL"].fillna("Missing")
     q12_segments["Age Range"] = pd.cut(
         q12_segments["AGE"],
-        bins=[12, 17, 24, 34, 200],
-        labels=["13-17", "18-24", "25-34", "35+"],
+        bins=[12, 17, 24, 200],
+        labels=["13-17", "18-24", "25+"],
         include_lowest=True,
     ).astype("string").fillna("Missing")
 
@@ -623,7 +623,7 @@ def main() -> None:
         y="Pick Rate",
         color="Age Range",
         barmode="group",
-        category_orders={"feature_short": feature_order, "Age Range": ["13-17", "18-24", "25-34", "35+", "Missing"]},
+        category_orders={"feature_short": feature_order, "Age Range": ["13-17", "18-24", "25+", "Missing"]},
         title="Future Feature Demand by Age Range",
         labels={"feature_short": "Future feature", "Pick Rate": "Pick rate within age range", "Age Range": "Age range"},
         text=q12_age["Pick Rate"].map(lambda value: pct(value, 0)),
@@ -868,6 +868,8 @@ def main() -> None:
     ''')}
     {section("Feature Demand Differences by Gender and Age", f'''
       <p>These cuts compare pick rates within each demographic segment. Use them to identify whether roadmap demand is broad-based or concentrated among specific user groups.</p>
+      <p><strong>Gender key insight:</strong> Gender differences are statistically visible but strategically modest. Female respondents over-index most on profile frames (16.8% vs. 10.5% among male respondents), while male respondents over-index on spawn/despawn effects (24.5% vs. 18.7% among female respondents) and particle effect avatar items (27.1% vs. 24.3%). App themes are relatively broad-based, with female respondents slightly higher than male respondents (23.2% vs. 21.4%).</p>
+      <p><strong>Age key insight:</strong> The clearest age pattern is that older respondents are more drawn to creator-adjacent and status cosmetic concepts, while younger respondents lean more toward app personalization. Respondents 25+ over-index on AI-generated avatars/items (7.5% vs. 2.9% among ages 13-17) and particle effect avatar items (28.0% vs. 23.6%), whereas ages 13-17 show the highest demand for app themes (23.4% vs. 18.9% among 25+).</p>
       {fig_html(fig_q12_gender)}
       {fig_html(fig_q12_gender_composition)}
       {fig_html(fig_q12_age)}
