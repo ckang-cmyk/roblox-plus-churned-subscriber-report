@@ -146,6 +146,8 @@ def main() -> None:
     q6 = read_csv("q6_initial_subscription_motivations.csv")
     q7 = read_csv("q7_main_subscription_reason_distribution.csv")
     q8 = read_csv("q8_feature_rank_summary.csv")
+    q8_rank_dist = read_csv("q8_benefit_ranking_distribution.csv")
+    q8_rank_long = read_csv("q8_benefit_ranking_long.csv")
     q9 = read_csv("q9_churn_reason_by_retention_group_row_pct.csv")
     churn_keywords = read_csv("churn_text_keyword_share_of_voice.csv")
     q12 = read_csv("q12_feature_pick_rates.csv")
@@ -202,6 +204,17 @@ def main() -> None:
     )
     fig_q6.update_layout(xaxis_tickformat=".0%")
 
+    fig_q7 = px.bar(
+        q7.sort_values("pct"),
+        x="pct",
+        y="reason_label",
+        orientation="h",
+        title="Primary Reason for Subscribing to Roblox Plus",
+        labels={"pct": "Share of respondents", "reason_label": "Primary subscription reason"},
+        text=q7.sort_values("pct")["pct"].map(lambda value: pct(value)),
+    )
+    fig_q7.update_layout(xaxis_tickformat=".0%")
+
     fig_q3 = px.bar(
         q3.sort_values("share"),
         x="share",
@@ -225,6 +238,19 @@ def main() -> None:
         labels={"importance_score": "Importance score (6 - mean rank)", "feature_short": "Benefit"},
         text=q8.sort_values("importance_score")["importance_score"].map(lambda value: f"{value:.2f}"),
     )
+
+    rank_order = ["#1", "#2", "#3", "#4", "#5"]
+    fig_q8_rank_dist = px.bar(
+        q8_rank_long,
+        x="Benefit",
+        y="Percent",
+        color="Rank",
+        category_orders={"Rank": rank_order},
+        title="Benefit Ranking Distribution by Benefit",
+        labels={"Benefit": "Plus benefit", "Percent": "Share of valid rankings", "Rank": "Rank position"},
+        text=q8_rank_long["Percent"].map(lambda value: pct(value, 0)),
+    )
+    fig_q8_rank_dist.update_layout(barmode="stack", yaxis_tickformat=".0%")
 
     q9_plot = q9.rename(columns={"RETENTION_GROUP": "Retention Group"}).melt(
         id_vars="Retention Group",
@@ -304,6 +330,24 @@ def main() -> None:
         mean=q8["mean"].map(lambda value: f"{value:.2f}"),
         importance_score=q8["importance_score"].map(lambda value: f"{value:.2f}"),
     ).rename(columns={"feature_short": "Plus benefit", "mean": "Mean rank", "importance_score": "Importance score"})
+    q8_rank_table = q8_rank_dist[
+        [
+            "Benefit",
+            "Valid Ranking N",
+            "#1 Count",
+            "#1 %",
+            "#2 Count",
+            "#2 %",
+            "#3 Count",
+            "#3 %",
+            "#4 Count",
+            "#4 %",
+            "#5 Count",
+            "#5 %",
+        ]
+    ].copy()
+    for column in ["#1 %", "#2 %", "#3 %", "#4 %", "#5 %"]:
+        q8_rank_table[column] = q8_rank_table[column].map(pct)
     q12_table = q12[["feature_short", "n", "pick_rate"]].assign(
         pick_rate=q12["pick_rate"].map(pct)
     ).rename(columns={"feature_short": "Future feature", "n": "Respondents", "pick_rate": "Pick rate"})
@@ -317,6 +361,9 @@ def main() -> None:
         churn_keywords["group"].eq("Low Intent")
         & churn_keywords["keyword_category"].eq("Financial Strain")
     ]["share_of_voice"].iloc[0]
+    top_ranked_benefit = q8_rank_dist.sort_values("#1 %", ascending=False).iloc[0]
+    most_bottom_ranked_benefit = q8_rank_dist.sort_values("#5 %", ascending=False).iloc[0]
+    middle_default_benefit = q8_rank_dist.sort_values("#3 %", ascending=False).iloc[0]
 
     hero = f"""
     <header class="hero">
@@ -375,12 +422,49 @@ def main() -> None:
       {table_html(q3_table)}
     ''')}
     {section("Discovery and Initial Subscription Path", f'''
-      <p>Social media and the Buy Robux page were the largest discovery channels. The free trial was the dominant initial subscription motivation at {pct(top_motivation_pct)}, suggesting trial-to-paid conversion quality is central to churn prevention.</p>
-      <div class="chart-block">{fig_html(fig_q6)}</div>
+      <p>Social media and the Buy Robux page were the largest discovery channels. This helps show where churned subscribers first encountered Plus before their initial subscription decision.</p>
       <div class="table-grid">
         <div><h3>Top Discovery Channels</h3>{table_html(q5_table)}</div>
-        <div><h3>Main Subscription Reason</h3>{table_html(q7_table)}</div>
       </div>
+    ''')}
+    """
+
+    reasons_tab = f"""
+    <div class="takeaway">
+      <h2>Reasons for Subscribing</h2>
+      <p>Trialing was the strongest acquisition hook for churned subscribers, while private servers, “wanted to try it out,” and discounts formed the next tier of motivation. This suggests that the front-door pitch was effective enough to drive trial, but not durable enough to prevent churn.</p>
+    </div>
+    {section("Primary Reasons for Subscribing: Select All", f'''
+      <p>Respondents could select multiple initial motivations. Free trial leads by a wide margin at {pct(top_motivation_pct)}, followed by private servers and general curiosity.</p>
+      <div class="chart-block">{fig_html(fig_q6)}</div>
+      {table_html(q6_table)}
+    ''')}
+    {section("Primary Reason for Subscribing: Single Choice", f'''
+      <p>When forced to choose one primary reason, free trial remains the top driver. This makes trial design and post-trial perceived value central to improving retention.</p>
+      <div class="chart-block">{fig_html(fig_q7)}</div>
+      {table_html(q7_table)}
+    ''')}
+    """
+
+    ranking_tab = f"""
+    <div class="takeaway">
+      <h2>Ranking Plus Benefits</h2>
+      <p>The churned subscriber audience is divided on which current Plus benefit matters most. No benefit dominates the ranking exercise, which reinforces that the current bundle lacks a single universally compelling anchor.</p>
+      <ol>
+        <li><strong>Top ranked benefit:</strong> {top_ranked_benefit["Benefit"]} has the highest #1 share at {pct(top_ranked_benefit["#1 %"])}.</li>
+        <li><strong>Most polarizing benefit:</strong> {most_bottom_ranked_benefit["Benefit"]} has the highest #5 share at {pct(most_bottom_ranked_benefit["#5 %"])}, even though it also receives meaningful #1 votes.</li>
+        <li><strong>Default middle benefit:</strong> {middle_default_benefit["Benefit"]} is most often ranked #3 at {pct(middle_default_benefit["#3 %"])}, suggesting it is useful but rarely the headline reason to subscribe.</li>
+      </ol>
+    </div>
+    {section("Benefit Ranking Distribution by Benefit", f'''
+      <p>Rank 1 means “most important” and rank 5 means “least important.” The chart below shows each benefit’s full distribution across all rank positions.</p>
+      {fig_html(fig_q8_rank_dist)}
+      {table_html(q8_rank_table)}
+    ''')}
+    {section("Interpretation for Product Strategy", f'''
+      <p>Publish avatar items and trade/resell features score slightly better on mean rank, but the gap across shipped benefits is narrow. Private servers and discounts have clear value but also draw large bottom-rank shares, indicating they are not enough to keep many churned subscribers attached to the bundle by themselves.</p>
+      <div class="chart-block">{fig_html(fig_q8)}</div>
+      {table_html(q8_table)}
     ''')}
     """
 
@@ -389,14 +473,6 @@ def main() -> None:
       <p>The structured churn data points to a product-value mismatch: monthly Robux is the most common cancellation reason across all return-intent groups. Open-end keywords show financial pressure is even more common than Robux language among Low Intent respondents.</p>
       {fig_html(fig_q9)}
       {fig_html(fig_churn_keywords)}
-    ''')}
-    {section("Initial Motivations and Benefit Valuation", f'''
-      <p>Users came in through trialing, private servers, and discounts, but baseline benefit rankings are tightly clustered. This suggests no single shipped benefit fully anchors the bundle for churned subscribers.</p>
-      <div class="chart-block">{fig_html(fig_q8)}</div>
-      <div class="table-grid">
-        <div><h3>Initial Subscription Motivations</h3>{table_html(q6_table)}</div>
-        <div><h3>Benefit Rank Summary</h3>{table_html(q8_table)}</div>
-      </div>
     ''')}
     """
 
@@ -606,11 +682,15 @@ def main() -> None:
     <nav class="tabs" aria-label="Report sections">
       <button class="tab-button active" data-tab="executive">Executive Summary</button>
       <button class="tab-button" data-tab="sample">Sample & Subscription Path</button>
+      <button class="tab-button" data-tab="reasons">Reasons for Subscribing</button>
+      <button class="tab-button" data-tab="ranking">Ranking Plus Benefits</button>
       <button class="tab-button" data-tab="churn">Churn Deep Dive</button>
       <button class="tab-button" data-tab="roadmap">Future Roadmap</button>
     </nav>
     <section id="executive" class="tab-panel active">{executive_tab}</section>
     <section id="sample" class="tab-panel">{sample_tab}</section>
+    <section id="reasons" class="tab-panel">{reasons_tab}</section>
+    <section id="ranking" class="tab-panel">{ranking_tab}</section>
     <section id="churn" class="tab-panel">{churn_tab}</section>
     <section id="roadmap" class="tab-panel">{roadmap_tab}</section>
     <div class="footer">Source: Roblox Plus churned subscriber SPSS survey · Analysis generated from outputs/analysis_ready_respondent_level.csv</div>
