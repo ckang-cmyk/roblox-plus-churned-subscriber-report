@@ -1,0 +1,6 @@
+*.sav
+*.pdf
+__pycache__/
+outputs/
+*.pyc
+.DS_Store
