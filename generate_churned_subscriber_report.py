@@ -222,6 +222,7 @@ def main() -> None:
     q8["feature_short"] = q8["feature"].map(Q8_SHORT_NAMES).fillna(q8["feature"])
     q12["feature_short"] = q12["feature"].map(short_feature)
     q13_backlash["feature_short"] = q13_backlash["feature"].map(short_feature)
+    feature_order = q12["feature_short"].tolist()
 
     q10_overall = (
         analysis["Q10_LABEL"]
@@ -448,6 +449,66 @@ def main() -> None:
     fig_q12.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
     keep_percent_labels_off_error_bars(fig_q12)
 
+    q12_segments = analysis[["Q12_LABEL", "GENDER_LABEL", "AGE"]].copy()
+    q12_segments["feature_short"] = q12_segments["Q12_LABEL"].map(short_feature)
+    q12_segments["GENDER_LABEL"] = q12_segments["GENDER_LABEL"].fillna("Missing")
+    q12_segments["AGE_GROUP"] = pd.cut(
+        q12_segments["AGE"],
+        bins=[12, 17, 24, 34, 200],
+        labels=["13-17", "18-24", "25-34", "35+"],
+        include_lowest=True,
+    ).astype("string").fillna("Missing")
+
+    q12_gender = (
+        q12_segments.dropna(subset=["feature_short"])
+        .groupby(["GENDER_LABEL", "feature_short"], observed=False)
+        .size()
+        .reset_index(name="Respondents")
+    )
+    q12_gender["Total"] = q12_gender.groupby("GENDER_LABEL", observed=False)["Respondents"].transform("sum")
+    q12_gender["Pick Rate"] = q12_gender["Respondents"] / q12_gender["Total"]
+    q12_gender = add_ci_columns(q12_gender, "Respondents", "Total", "Pick Rate")
+    fig_q12_gender = px.bar(
+        q12_gender,
+        x="feature_short",
+        y="Pick Rate",
+        color="GENDER_LABEL",
+        barmode="group",
+        category_orders={"feature_short": feature_order, "GENDER_LABEL": ["Male", "Female", "Unknown", "Missing"]},
+        title="Future Feature Demand by Gender",
+        labels={"feature_short": "Future feature", "Pick Rate": "Pick rate within gender", "GENDER_LABEL": "Gender"},
+        text=q12_gender["Pick Rate"].map(lambda value: pct(value, 0)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
+    )
+    fig_q12_gender.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
+    keep_percent_labels_off_error_bars(fig_q12_gender)
+
+    q12_age = (
+        q12_segments.dropna(subset=["feature_short"])
+        .groupby(["AGE_GROUP", "feature_short"], observed=False)
+        .size()
+        .reset_index(name="Respondents")
+    )
+    q12_age["Total"] = q12_age.groupby("AGE_GROUP", observed=False)["Respondents"].transform("sum")
+    q12_age["Pick Rate"] = q12_age["Respondents"] / q12_age["Total"]
+    q12_age = add_ci_columns(q12_age, "Respondents", "Total", "Pick Rate")
+    fig_q12_age = px.bar(
+        q12_age,
+        x="feature_short",
+        y="Pick Rate",
+        color="AGE_GROUP",
+        barmode="group",
+        category_orders={"feature_short": feature_order, "AGE_GROUP": ["13-17", "18-24", "25-34", "35+", "Missing"]},
+        title="Future Feature Demand by Age Group",
+        labels={"feature_short": "Future feature", "Pick Rate": "Pick rate within age group", "AGE_GROUP": "Age group"},
+        text=q12_age["Pick Rate"].map(lambda value: pct(value, 0)),
+        error_y="ci_error_plus",
+        error_y_minus="ci_error_minus",
+    )
+    fig_q12_age.update_layout(yaxis_tickformat=".0%", xaxis_tickangle=-35)
+    keep_percent_labels_off_error_bars(fig_q12_age)
+
     backlash_plot = q13_backlash[q13_backlash["matching_respondents"].gt(0)].copy()
     fig_backlash_html = ""
     if not backlash_plot.empty:
@@ -650,6 +711,11 @@ def main() -> None:
       <p>The strongest roadmap candidates are visible identity and in-experience expression features. AI concepts sit at the bottom of explicit demand, and the backlash scan shows negative language is rare but concentrated around AI and customization categories.</p>
       {fig_html(fig_q12)}
       {table_html(q12_table)}
+    ''')}
+    {section("Feature Demand Differences by Gender and Age", f'''
+      <p>These cuts compare pick rates within each demographic segment. Use them to identify whether roadmap demand is broad-based or concentrated among specific user groups.</p>
+      {fig_html(fig_q12_gender)}
+      {fig_html(fig_q12_age)}
     ''')}
     {section("AI and Corporate Backlash Watchouts", f'''
       <p>Backlash keywords are not broadly prevalent, but terms like “slop,” “AI garbage,” “investor,” and “greed” do appear in Q13 open-ends. Treat AI features as higher-risk roadmap bets unless paired with strong creator-quality positioning.</p>
