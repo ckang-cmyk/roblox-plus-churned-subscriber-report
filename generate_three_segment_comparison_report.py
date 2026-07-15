@@ -610,10 +610,12 @@ def main() -> None:
         color_discrete_map=LIKELIHOOD_COLORS,
         title="Subscription Intent by Segment",
         labels={"Share": "Share within segment"},
+        text=intent["Share"].map(lambda v: pct(v, 0)),
         error_y="ci_error_plus",
         error_y_minus="ci_error_minus",
     )
     fig_intent.update_layout(barmode="stack", yaxis_tickformat=".0%")
+    keep_labels_clear(fig_intent)
 
     fig_intent_group = px.bar(
         intent_group,
