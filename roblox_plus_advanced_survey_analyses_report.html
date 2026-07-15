@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Advanced Roblox Plus Survey Analyses</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --paper: #ffffff;
+      --ink: #14171f;
+      --muted: #5b6472;
+      --line: #dfe3ea;
+      --accent: #2f5fd0;
+      --accent-soft: #eef3ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+    .page { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; }
+    .hero, .tab-panel, .report-section, .takeaway {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+    .hero { padding: 36px; margin-bottom: 18px; }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 0; font-size: 34px; line-height: 1.15; letter-spacing: -0.03em; }
+    h2 { margin: 0 0 12px; font-size: 22px; letter-spacing: -0.02em; }
+    .lede { max-width: 860px; color: var(--muted); font-size: 17px; margin: 14px 0 28px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .kpi-card { border: 1px solid var(--line); border-radius: 14px; padding: 16px; background: var(--accent-soft); }
+    .kpi-label { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+    .kpi-value { margin-top: 8px; font-size: 22px; font-weight: 800; line-height: 1.15; }
+    .kpi-note { margin-top: 8px; color: var(--muted); font-size: 13px; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0; }
+    .tab-button {
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tab-button.active { background: var(--ink); color: white; border-color: var(--ink); }
+    .tab-panel { display: none; padding: 24px; }
+    .tab-panel.active { display: block; }
+    .takeaway, .report-section { padding: 22px; margin-bottom: 18px; }
+    .takeaway p, .report-section p { color: var(--muted); margin-top: 0; }
+    table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; background: white; }
+    .data-table th { text-align: left; color: var(--muted); background: #f3f5f9; border-bottom: 1px solid var(--line); padding: 10px; }
+    .data-table td { border-bottom: 1px solid var(--line); padding: 10px; vertical-align: top; }
+    .footer { color: var(--muted); font-size: 12px; margin-top: 24px; text-align: center; }
+    @media (max-width: 860px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 28px; }
+      .hero { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    
+    <header class="hero">
+      <p class="eyebrow">Roblox Plus · Advanced Survey Analyses</p>
+      <h1>Advanced Roblox Plus Survey Analysis</h1>
+      <p class="lede">This report runs the next layer of analyses across non-subscribers, churned subscribers, and renewed subscribers: high-intent driver tests, segment-specific profiles, barrier sizing, winback opportunity, retention value drivers, future feature prioritization, and open-end keyword themes.</p>
+      <div class="kpi-grid">
+        
+    <div class="kpi-card">
+      <div class="kpi-label">Top Cross-Segment Driver</div>
+      <div class="kpi-value">Segment</div>
+      <div class="kpi-note">Cramer&#x27;s V 0.558</div>
+    </div>
+    
+        
+    <div class="kpi-card">
+      <div class="kpi-label">Top Non-Sub Barrier</div>
+      <div class="kpi-value">Low utility</div>
+      <div class="kpi-note">74.5%</div>
+    </div>
+    
+        
+    <div class="kpi-card">
+      <div class="kpi-label">Best Winback Signal</div>
+      <div class="kpi-value">I don’t transfer Robux to others often enough</div>
+      <div class="kpi-note">70.5% maybe/high intent</div>
+    </div>
+    
+        
+    <div class="kpi-card">
+      <div class="kpi-label">Top Retention Value</div>
+      <div class="kpi-value">Discounts</div>
+      <div class="kpi-note">1,418 renewed users</div>
+    </div>
+    
+      </div>
+    </header>
+    
+    <nav class="tabs" aria-label="Report sections">
+      <button class="tab-button active" data-tab="executive">Executive Summary</button>
+      <button class="tab-button" data-tab="drivers">Intent Drivers</button>
+      <button class="tab-button" data-tab="roadmap">Future Roadmap</button>
+      <button class="tab-button" data-tab="non-subs">Non-Subscribers</button>
+      <button class="tab-button" data-tab="churned">Churned</button>
+      <button class="tab-button" data-tab="renewed">Renewed</button>
+    </nav>
+    <section id="executive" class="tab-panel active">
+    <div class="takeaway">
+      <h2>Executive Summary</h2>
+      <ol>
+        <li><strong>Intent is most strongly structured by segment relationship:</strong> the strongest cross-segment driver is Segment (Cramer's V=0.558), confirming that acquisition, winback, and retention should be managed as distinct funnels.</li>
+        <li><strong>Within segments, platform sentiment and Plus familiarity are recurring intent signals:</strong> they repeatedly appear among the top univariate drivers, meaning product value messaging has to work alongside broader Roblox sentiment.</li>
+        <li><strong>The biggest strategic split is practical value vs. emotional/cosmetic upside:</strong> discounts, private servers, and Robux-related benefits anchor current value, while future features help create conversion or retention upside for specific audiences.</li>
+      </ol>
+    </div>
+    <div style="height:520px; width:100%;">                        <script>window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.6.0.min.js" integrity="sha256-QaOVwtVY0T02VaHrr6pnoHLCwayMJp4O5n4YyaE3rJk=" crossorigin="anonymous"></script>                <div id="80ec6871-263b-47c7-a3be-1461754c55e5" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("80ec6871-263b-47c7-a3be-1461754c55e5")) {                    Plotly.newPlot(                        "80ec6871-263b-47c7-a3be-1461754c55e5",                        [{"hovertemplate":"Predictor=%{x}\u003cbr\u003eCramer's V=%{y}\u003cbr\u003etext=%{text}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","marker":{"color":"#636efa","pattern":{"shape":""}},"name":"","orientation":"v","showlegend":false,"text":["0.558","0.353","0.346","0.185","0.102","0.080","0.052"],"textposition":"auto","x":["Segment","Q3_LABEL","Q4_LABEL","Q2_LABEL","Q12_LABEL","GENDER_LABEL","Age Range"],"xaxis":"x","y":{"dtype":"f8","bdata":"dMsQZC7a4T997Hy4V5fWP1ehOzcDK9Y\u002fGPY3Fa2txz\u002ft8HRA5CO6Pyr6ZqrUmLQ\u002f\u002f0XsImK+qj8="},"yaxis":"y","type":"bar"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Predictor"},"tickangle":-25},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Cramer's V"}},"legend":{"tracegroupgap":0},"title":{"text":"Cross-Segment High-Intent Driver Strength"},"barmode":"relative"},                        {"displayModeBar": false, "responsive": true}                    )                };            </script>        </div>
+    <table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Predictor</th>
+      <th>Respondents</th>
+      <th>Cramer's V</th>
+      <th>p-value</th>
+      <th>High-intent spread</th>
+      <th>Highest high-intent category</th>
+      <th>Lowest high-intent category</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Segment</td>
+      <td>9186</td>
+      <td>0.558</td>
+      <td>0.00e+00</td>
+      <td>59.9%</td>
+      <td>Renewed subscribers (69.7%, n=3341)</td>
+      <td>Non-subscribers (9.8%, n=2797)</td>
+    </tr>
+    <tr>
+      <td>Q3_LABEL</td>
+      <td>9172</td>
+      <td>0.353</td>
+      <td>2.36e-232</td>
+      <td>49.8%</td>
+      <td>To create (ex. games, avatars, marketplace items etc) (57.8%, n=173)</td>
+      <td>Entertain myself (8.0%, n=984)</td>
+    </tr>
+    <tr>
+      <td>Q4_LABEL</td>
+      <td>9182</td>
+      <td>0.346</td>
+      <td>3.38e-237</td>
+      <td>45.2%</td>
+      <td>Extremely familiar (54.9%, n=2370)</td>
+      <td>Not familiar at all (9.8%, n=1169)</td>
+    </tr>
+    <tr>
+      <td>Q2_LABEL</td>
+      <td>9183</td>
+      <td>0.185</td>
+      <td>9.15e-67</td>
+      <td>25.4%</td>
+      <td>Love it (48.1%, n=1412)</td>
+      <td>Hate it (22.7%, n=1469)</td>
+    </tr>
+    <tr>
+      <td>Q12_LABEL</td>
+      <td>9149</td>
+      <td>0.102</td>
+      <td>2.29e-18</td>
+      <td>13.2%</td>
+      <td>Particle effect avatar items (42.3%, n=2479)</td>
+      <td>Spawn / despawn effects (29.2%, n=2010)</td>
+    </tr>
+    <tr>
+      <td>GENDER_LABEL</td>
+      <td>9120</td>
+      <td>0.080</td>
+      <td>1.51e-13</td>
+      <td>8.4%</td>
+      <td>Male (38.1%, n=5720)</td>
+      <td>Female (29.7%, n=2602)</td>
+    </tr>
+    <tr>
+      <td>Age Range</td>
+      <td>9151</td>
+      <td>0.052</td>
+      <td>3.79e-06</td>
+      <td>8.1%</td>
+      <td>25+ (41.2%, n=906)</td>
+      <td>13-17 (33.1%, n=4822)</td>
+    </tr>
+  </tbody>
+</table>
+    </section>
+    <section id="drivers" class="tab-panel">
+    
+    <section class="report-section">
+      <h2>Segment-Specific Intent Drivers</h2>
+      
+      <p>These are univariate driver tests for high intent within each segment. They are not causal models, but they identify which respondent characteristics most strongly separate high-intent users from everyone else.</p>
+      <div style="height:520px; width:100%;">                            <div id="24484e5c-5bd7-4cab-a530-92e61e698fd6" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("24484e5c-5bd7-4cab-a530-92e61e698fd6")) {                    Plotly.newPlot(                        "24484e5c-5bd7-4cab-a530-92e61e698fd6",                        [{"hovertemplate":"Segment=Churned subscribers\u003cbr\u003ePredictor=%{x}\u003cbr\u003eCramer's V=%{y}\u003cbr\u003etext=%{text}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Churned subscribers","marker":{"color":"#636efa","pattern":{"shape":""}},"name":"Churned subscribers","orientation":"v","showlegend":true,"text":["0.227","0.194","0.077","0.069"],"textposition":"auto","x":["Q2_LABEL","Q4_LABEL","Q12_LABEL","Q3_LABEL"],"xaxis":"x","y":{"dtype":"f8","bdata":"fRvW2SAWzT+RDbVA7tfIP\u002f\u002fYfESRo7M\u002fmj\u002fecpmesT8="},"yaxis":"y","type":"bar"},{"hovertemplate":"Segment=Non-subscribers\u003cbr\u003ePredictor=%{x}\u003cbr\u003eCramer's V=%{y}\u003cbr\u003etext=%{text}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Non-subscribers","marker":{"color":"#EF553B","pattern":{"shape":""}},"name":"Non-subscribers","orientation":"v","showlegend":true,"text":["0.244","0.185","0.092","0.076"],"textposition":"auto","x":["Q2_LABEL","Q4_LABEL","Q3_LABEL","Q12_LABEL"],"xaxis":"x2","y":{"dtype":"f8","bdata":"3h313X80zz\u002f8n5X56KDHP+sh6fhSqLc\u002flsBdJ1Jpsz8="},"yaxis":"y2","type":"bar"},{"hovertemplate":"Segment=Renewed subscribers\u003cbr\u003ePredictor=%{x}\u003cbr\u003eCramer's V=%{y}\u003cbr\u003etext=%{text}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Renewed subscribers","marker":{"color":"#00cc96","pattern":{"shape":""}},"name":"Renewed subscribers","orientation":"v","showlegend":true,"text":["0.230","0.220","0.077","0.064"],"textposition":"auto","x":["Q4_LABEL","Q2_LABEL","Q12_LABEL","Q3_LABEL"],"xaxis":"x3","y":{"dtype":"f8","bdata":"FfVBYvF\u002fzT8SsiyRDSjMP9KKkyoU07M\u002fAPdts\u002fFNsD8="},"yaxis":"y3","type":"bar"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,0.31999999999999995],"title":{"text":"Predictor"},"tickangle":-25},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Cramer's V"}},"xaxis2":{"anchor":"y2","domain":[0.33999999999999997,0.6599999999999999],"matches":"x","title":{"text":"Predictor"}},"yaxis2":{"anchor":"x2","domain":[0.0,1.0],"matches":"y","showticklabels":false},"xaxis3":{"anchor":"y3","domain":[0.6799999999999999,0.9999999999999999],"matches":"x","title":{"text":"Predictor"}},"yaxis3":{"anchor":"x3","domain":[0.0,1.0],"matches":"y","showticklabels":false},"annotations":[{"font":{},"showarrow":false,"text":"Segment=Churned subscribers","x":0.15999999999999998,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{},"showarrow":false,"text":"Segment=Non-subscribers","x":0.49999999999999994,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{},"showarrow":false,"text":"Segment=Renewed subscribers","x":0.8399999999999999,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"}],"legend":{"title":{"text":"Segment"},"tracegroupgap":0},"title":{"text":"Top Segment-Specific High-Intent Drivers"},"barmode":"relative","showlegend":false},                        {"displayModeBar": false, "responsive": true}                    )                };            </script>        </div>
+      <table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Predictor</th>
+      <th>Respondents</th>
+      <th>Cramer's V</th>
+      <th>p-value</th>
+      <th>High-intent spread</th>
+      <th>Highest high-intent category</th>
+      <th>Lowest high-intent category</th>
+      <th>Segment</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Q2_LABEL</td>
+      <td>3048</td>
+      <td>0.227</td>
+      <td>5.31e-33</td>
+      <td>24.9%</td>
+      <td>Love it (37.0%, n=513)</td>
+      <td>Hate it (12.1%, n=520)</td>
+      <td>Churned subscribers</td>
+    </tr>
+    <tr>
+      <td>Q4_LABEL</td>
+      <td>3048</td>
+      <td>0.194</td>
+      <td>6.82e-24</td>
+      <td>20.6%</td>
+      <td>Extremely familiar (31.3%, n=804)</td>
+      <td>Barely familiar (10.8%, n=278)</td>
+      <td>Churned subscribers</td>
+    </tr>
+    <tr>
+      <td>Q12_LABEL</td>
+      <td>3048</td>
+      <td>0.077</td>
+      <td>6.39e-03</td>
+      <td>14.0%</td>
+      <td>AI avatar backgrounds (30.0%, n=90)</td>
+      <td>Spawn / despawn effects (16.0%, n=687)</td>
+      <td>Churned subscribers</td>
+    </tr>
+    <tr>
+      <td>Q3_LABEL</td>
+      <td>3048</td>
+      <td>0.069</td>
+      <td>7.10e-02</td>
+      <td>21.5%</td>
+      <td>To spend time with family (30.8%, n=52)</td>
+      <td>To express myself (9.2%, n=65)</td>
+      <td>Churned subscribers</td>
+    </tr>
+    <tr>
+      <td>Age Range</td>
+      <td>3048</td>
+      <td>0.035</td>
+      <td>1.53e-01</td>
+      <td>2.8%</td>
+      <td>18-24 (21.4%, n=1203)</td>
+      <td>13-17 (18.5%, n=1591)</td>
+      <td>Churned subscribers</td>
+    </tr>
+    <tr>
+      <td>Q2_LABEL</td>
+      <td>2794</td>
+      <td>0.244</td>
+      <td>7.34e-35</td>
+      <td>21.0%</td>
+      <td>Love it (25.1%, n=442)</td>
+      <td>Dislike it (4.1%, n=627)</td>
+      <td>Non-subscribers</td>
+    </tr>
+    <tr>
+      <td>Q4_LABEL</td>
+      <td>2793</td>
+      <td>0.185</td>
+      <td>1.05e-19</td>
+      <td>17.4%</td>
+      <td>Extremely familiar (23.3%, n=347)</td>
+      <td>Barely familiar (6.0%, n=451)</td>
+      <td>Non-subscribers</td>
+    </tr>
+    <tr>
+      <td>Q3_LABEL</td>
+      <td>2783</td>
+      <td>0.092</td>
+      <td>2.51e-03</td>
+      <td>14.4%</td>
+      <td>Express myself (22.4%, n=67)</td>
+      <td>Entertain myself (8.0%, n=984)</td>
+      <td>Non-subscribers</td>
+    </tr>
+    <tr>
+      <td>Q12_LABEL</td>
+      <td>2760</td>
+      <td>0.076</td>
+      <td>1.45e-02</td>
+      <td>12.0%</td>
+      <td>AI avatar backgrounds (20.0%, n=75)</td>
+      <td>AI-generated avatars/items (8.0%, n=112)</td>
+      <td>Non-subscribers</td>
+    </tr>
+    <tr>
+      <td>Age Range</td>
+      <td>2762</td>
+      <td>0.036</td>
+      <td>1.74e-01</td>
+      <td>2.3%</td>
+      <td>18-24 (11.3%, n=908)</td>
+      <td>13-17 (9.1%, n=1610)</td>
+      <td>Non-subscribers</td>
+    </tr>
+    <tr>
+      <td>Q4_LABEL</td>
+      <td>3341</td>
+      <td>0.230</td>
+      <td>2.62e-37</td>
+      <td>41.7%</td>
+      <td>Extremely familiar (79.5%, n=1219)</td>
+      <td>Barely familiar (37.8%, n=127)</td>
+      <td>Renewed subscribers</td>
+    </tr>
+    <tr>
+      <td>Q2_LABEL</td>
+      <td>3341</td>
+      <td>0.220</td>
+      <td>6.43e-34</td>
+      <td>30.0%</td>
+      <td>Love it (82.7%, n=457)</td>
+      <td>Hate it (52.8%, n=472)</td>
+      <td>Renewed subscribers</td>
+    </tr>
+    <tr>
+      <td>Q12_LABEL</td>
+      <td>3341</td>
+      <td>0.077</td>
+      <td>2.73e-03</td>
+      <td>13.4%</td>
+      <td>App themes (74.0%, n=601)</td>
+      <td>AI avatar backgrounds (60.6%, n=66)</td>
+      <td>Renewed subscribers</td>
+    </tr>
+    <tr>
+      <td>Q3_LABEL</td>
+      <td>3341</td>
+      <td>0.064</td>
+      <td>9.42e-02</td>
+      <td>13.6%</td>
+      <td>To create (ex. games, avatars, marketplace items etc) (75.6%, n=119)</td>
+      <td>To connect with new people (62.0%, n=158)</td>
+      <td>Renewed subscribers</td>
+    </tr>
+    <tr>
+      <td>GENDER_LABEL</td>
+      <td>3341</td>
+      <td>0.055</td>
+      <td>6.25e-03</td>
+      <td>5.7%</td>
+      <td>Male (71.5%, n=2261)</td>
+      <td>Female (65.7%, n=788)</td>
+      <td>Renewed subscribers</td>
+    </tr>
+  </tbody>
+</table>
+    
+    </section>
+    
+    
+    <section class="report-section">
+      <h2>Intent Group Profiles</h2>
+      
+      <p>This table profiles low, maybe, and high intent groups by their most common segment, sentiment, familiarity, platform motivation, future feature pick, and age range.</p>
+      <table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Intent Group</th>
+      <th>Respondents</th>
+      <th>High Intent</th>
+      <th>Segment</th>
+      <th>Q2_LABEL</th>
+      <th>Q4_LABEL</th>
+      <th>Q3_LABEL</th>
+      <th>Q12_LABEL</th>
+      <th>Age Range</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Low Intent</td>
+      <td>3331</td>
+      <td>0.0%</td>
+      <td>Non-subscribers (52.2%)</td>
+      <td>Neutral (26.9%)</td>
+      <td>Somewhat familiar (28.7%)</td>
+      <td>Entertain myself (19.0%)</td>
+      <td>Spawn / despawn effects (25.7%)</td>
+      <td>13-17 (56.6%)</td>
+    </tr>
+    <tr>
+      <td>High Intent</td>
+      <td>3211</td>
+      <td>100.0%</td>
+      <td>Renewed subscribers (72.6%)</td>
+      <td>Neutral (26.8%)</td>
+      <td>Extremely familiar (40.5%)</td>
+      <td>To entertain myself (31.0%)</td>
+      <td>Particle effect avatar items (32.7%)</td>
+      <td>13-17 (49.7%)</td>
+    </tr>
+    <tr>
+      <td>Maybe</td>
+      <td>2598</td>
+      <td>0.0%</td>
+      <td>Churned subscribers (45.0%)</td>
+      <td>Neutral (31.2%)</td>
+      <td>Somewhat familiar (34.1%)</td>
+      <td>To entertain myself (24.4%)</td>
+      <td>Particle effect avatar items (26.9%)</td>
+      <td>13-17 (51.3%)</td>
+    </tr>
+    <tr>
+      <td>Missing</td>
+      <td>46</td>
+      <td>0.0%</td>
+      <td>Non-subscribers (100.0%)</td>
+      <td>Neutral (23.9%)</td>
+      <td>Not familiar at all (21.7%)</td>
+      <td>Missing (30.4%)</td>
+      <td>Missing (76.1%)</td>
+      <td>Missing (76.1%)</td>
+    </tr>
+  </tbody>
+</table>
+    
+    </section>
+    
+    </section>
+    <section id="roadmap" class="tab-panel">
+    
+    <section class="report-section">
+      <h2>Future Feature Prioritization Matrix</h2>
+      
+      <p>The prioritization matrix plots feature demand against high-intent concentration among respondents who chose that feature. Use the upper-right area for features that are both popular and attached to higher-intent users.</p>
+      <div style="height:520px; width:100%;">                            <div id="5eee0116-88ff-490c-9f20-38c67117563a" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("5eee0116-88ff-490c-9f20-38c67117563a")) {                    Plotly.newPlot(                        "5eee0116-88ff-490c-9f20-38c67117563a",                        [{"hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eSegment=Churned subscribers\u003cbr\u003ePick Rate=%{x}\u003cbr\u003eHigh-intent rate among pickers=%{y}\u003cbr\u003eRespondents=%{marker.size}\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["AI avatar backgrounds","AI-generated avatars\u002fitems","App themes","Particle effect avatar items","Profile frames","Rich text and emojis","Spawn \u002f despawn effects"],"legendgroup":"Churned subscribers","marker":{"color":"#636efa","size":{"dtype":"i2","bdata":"WgBnAJUCFwOFAUcBrwI="},"sizemode":"area","sizeref":2.7775,"symbol":"circle"},"mode":"markers","name":"Churned subscribers","orientation":"v","showlegend":true,"x":{"dtype":"f8","bdata":"j8fj8Xg8nj9T1BQ1RU2hP\u002fEivAgvwss\u002fJ76Jb+Kb0D8WYAVYAVbAP95ut9vtdrs\u002fNpvNZrPZzD8="},"xaxis":"x","y":{"dtype":"f8","bdata":"MzMzMzMz0z8jPoFUcl7GPzr\u002feXGvj8k\u002fozjXMYpzzT9e\u002fTM9B7HHPxiXSU6Ecck\u002fsFiOHrJ+xD8="},"yaxis":"y","type":"scatter"},{"hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eSegment=Non-subscribers\u003cbr\u003ePick Rate=%{x}\u003cbr\u003eHigh-intent rate among pickers=%{y}\u003cbr\u003eRespondents=%{marker.size}\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["AI avatar backgrounds","AI-generated avatars\u002fitems","App themes","Particle effect avatar items","Profile frames","Rich text and emojis","Spawn \u002f despawn effects"],"legendgroup":"Non-subscribers","marker":{"color":"#EF553B","size":{"dtype":"i2","bdata":"SwBwAHQCQQJxAToBrQI="},"sizemode":"area","sizeref":2.7775,"symbol":"circle"},"mode":"markers","name":"Non-subscribers","orientation":"v","showlegend":true,"x":{"dtype":"f8","bdata":"velNb3rTmz9MQegf3cakP9JtTEHoH80\u002frNg8XmnCyj8SKNpq8BzBP9JtTEHoH70\u002f\u002fIwSP6PEzz8="},"xaxis":"x","y":{"dtype":"f8","bdata":"mpmZmZmZyT8lSZIkSZK0P83qMMpUPLc\u002fQ2jVXyhlvD\u002flFk9u8eS2P+Fu7HtETsA\u002flMT6BbDttD8="},"yaxis":"y","type":"scatter"},{"hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eSegment=Renewed subscribers\u003cbr\u003ePick Rate=%{x}\u003cbr\u003eHigh-intent rate among pickers=%{y}\u003cbr\u003eRespondents=%{marker.size}\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["AI avatar backgrounds","AI-generated avatars\u002fitems","App themes","Particle effect avatar items","Profile frames","Rich text and emojis","Spawn \u002f despawn effects"],"legendgroup":"Renewed subscribers","marker":{"color":"#00cc96","size":{"dtype":"i2","bdata":"QgB5AFkCVwSaAYoBfgI="},"sizemode":"area","sizeref":2.7775,"symbol":"circle"},"mode":"markers","name":"Renewed subscribers","orientation":"v","showlegend":true,"x":{"dtype":"f8","bdata":"FNjsYYo6lD8TxsPZ\u002foqiP5dBSFWDBsc\u002fVYMGl0FI1T8fflovbmq\u002fPx7O9leUML4\u002fGIVTNmdxyD8="},"xaxis":"x","y":{"dtype":"f8","bdata":"ZZNNNtlk4z9h4v3Iab7mP97P2Lufsec\u002fosCkU\u002fMg5z\u002f\u002fBOxPwP7kP\u002fhN9HRur+U\u002f08c5SNoQ5T8="},"yaxis":"y","type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Pick Rate"},"tickformat":".0%"},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"High-intent rate among pickers"},"tickformat":".0%"},"legend":{"title":{"text":"Segment"},"tracegroupgap":0,"itemsizing":"constant"},"title":{"text":"Future Feature Prioritization Matrix"}},                        {"displayModeBar": false, "responsive": true}                    )                };            </script>        </div>
+    
+    </section>
+    
+    </section>
+    <section id="non-subs" class="tab-panel">
+    
+    <section class="report-section">
+      <h2>Non-Subscriber Barrier Segmentation</h2>
+      
+      <p>Barrier groups combine select-all reasons into broader strategic categories. Because this is select-all data, percentages can sum above 100%.</p>
+      <div style="height:520px; width:100%;">                            <div id="a782a468-a401-4a40-83e4-1f6a9857be5f" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("a782a468-a401-4a40-83e4-1f6a9857be5f")) {                    Plotly.newPlot(                        "a782a468-a401-4a40-83e4-1f6a9857be5f",                        [{"hovertemplate":"Barrier Group=%{x}\u003cbr\u003eEstimated Share=%{y}\u003cbr\u003etext=%{text}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","marker":{"color":"#636efa","pattern":{"shape":""}},"name":"","orientation":"v","showlegend":false,"text":["74%","70%","29%","26%","22%","12%"],"textposition":"inside","x":["Low utility","Subscription\u002fpayment friction","Bundle value gap","Other","Timing \u002f inertia","Awareness gap"],"xaxis":"x","y":{"dtype":"f8","bdata":"YolPp8zU5z9U+nXzjGzmPzJg2X0FVNI\u002fKyb7aPln0D9oSZYur97LP716b3Z6Hr8\u002f"},"yaxis":"y","type":"bar","textfont":{"size":11},"cliponaxis":false,"insidetextanchor":"middle"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Barrier Group"},"tickfont":{"size":10},"tickangle":-30},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Estimated Share"},"tickformat":".0%"},"legend":{"tracegroupgap":0},"title":{"text":"Non-Subscriber Barrier Group Sizing"},"barmode":"relative","margin":{"b":130},"uniformtext":{"minsize":9,"mode":"hide"}},                        {"displayModeBar": false, "responsive": true}                    )                };            </script>        </div>
+      <table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Barrier Group</th>
+      <th>Estimated Share</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Low utility</td>
+      <td>74.5%</td>
+    </tr>
+    <tr>
+      <td>Subscription/payment friction</td>
+      <td>70.1%</td>
+    </tr>
+    <tr>
+      <td>Bundle value gap</td>
+      <td>28.6%</td>
+    </tr>
+    <tr>
+      <td>Other</td>
+      <td>25.6%</td>
+    </tr>
+    <tr>
+      <td>Timing / inertia</td>
+      <td>21.8%</td>
+    </tr>
+    <tr>
+      <td>Awareness gap</td>
+      <td>12.2%</td>
+    </tr>
+  </tbody>
+</table>
+    
+    </section>
+    
+    
+    <section class="report-section">
+      <h2>Aware vs. Unaware Non-Subscribers</h2>
+      
+      <p>This compares high subscription intent among non-subscribers who are aware versus unaware of Roblox Plus, using Plus familiarity as the awareness proxy.</p>
+      <div style="height:520px; width:100%;">                            <div id="6f1b1d2e-9cf8-428e-8c92-b94c562f6603" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("6f1b1d2e-9cf8-428e-8c92-b94c562f6603")) {                    Plotly.newPlot(                        "6f1b1d2e-9cf8-428e-8c92-b94c562f6603",                        [{"hovertemplate":"Awareness Group=%{x}\u003cbr\u003eHigh_Intent=%{y}\u003cbr\u003etext=%{text}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","marker":{"color":"#636efa","pattern":{"shape":""}},"name":"","orientation":"v","showlegend":false,"text":["13%","6%"],"textposition":"inside","x":["Aware","Unaware"],"xaxis":"x","y":{"dtype":"f8","bdata":"Ma5b+hcawT+Bmw8ujtWuPw=="},"yaxis":"y","type":"bar","textfont":{"size":11},"cliponaxis":false,"insidetextanchor":"middle"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Awareness Group"},"tickfont":{"size":10},"tickangle":-30},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"High_Intent"},"tickformat":".0%"},"legend":{"tracegroupgap":0},"title":{"text":"Non-Subscriber High Intent by Awareness"},"barmode":"relative","margin":{"b":130},"uniformtext":{"minsize":9,"mode":"hide"}},                        {"displayModeBar": false, "responsive": true}                    )                };            </script>        </div>
+      <table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Awareness Group</th>
+      <th>Respondents</th>
+      <th>High intent</th>
+      <th>Low intent</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Aware</td>
+      <td>1452</td>
+      <td>13.4%</td>
+      <td>54.5%</td>
+    </tr>
+    <tr>
+      <td>Unaware</td>
+      <td>1345</td>
+      <td>6.0%</td>
+      <td>70.3%</td>
+    </tr>
+  </tbody>
+</table>
+    
+    </section>
+    
+    
+    <section class="report-section">
+      <h2>Non-Subscriber Open-End Themes</h2>
+      
+      <p>Keyword coding of non-subscriber open-ends highlights affordability, subscription resistance, low value, platform protest, and Robux stipend concerns.</p>
+      <table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Theme</th>
+      <th>Mentions</th>
+      <th>Share of text respondents</th>
+      <th>Representative quotes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Low usage / low need</td>
+      <td>1824</td>
+      <td>33.5%</td>
+      <td>&quot;Uninteresting to have discounts instead of more Robux, I prefer bigger amounts rather than needing to maintain a subscription to keep a discount.&quot; | &quot;because this platform is ass&quot; | &quot;Waste of money because Roblox kinda sucks now.&quot;</td>
+    </tr>
+    <tr>
+      <td>Cost / affordability</td>
+      <td>1431</td>
+      <td>26.3%</td>
+      <td>&quot;I&#x27;d rather not waste money like that on this platform.&quot; | &quot;i dont want to pay a company of greed. and ignorance&quot; | &quot;Waste of money because Roblox kinda sucks now.&quot;</td>
+    </tr>
+    <tr>
+      <td>Age / verification restrictions</td>
+      <td>618</td>
+      <td>11.3%</td>
+      <td>&quot;Like I said before. Tags in 18+ lobbies.&quot; | &quot;I can&#x27;t buy anything without parental approval.&quot; | &quot;I don&#x27;t really care, is this whole survey just an add for roblox plus? if you really do look at these and care get rid of dynamic faces and bring back 2019 or 2016 roblox back I sw&quot;</td>
+    </tr>
+    <tr>
+      <td>Customization / identity</td>
+      <td>540</td>
+      <td>9.9%</td>
+      <td>&quot;I don&#x27;t make avatar items and have no interest in selling/trading them&quot; | &quot;It&#x27;s the ONLY way to upload avatar items, and I personally do not want to support business practices that are of the likes to this.&quot; | &quot;Exclusive items for joining members&quot;</td>
+    </tr>
+    <tr>
+      <td>Platform trust / protest</td>
+      <td>493</td>
+      <td>9.0%</td>
+      <td>&quot;i dont want to pay a company of greed. and ignorance&quot; | &quot;Uninteresting to have discounts instead of more Robux, I prefer bigger amounts rather than needing to maintain a subscription to keep a discount.&quot; | &quot;Roblox doesn&#x27;t deserve the investment; there&#x27;s already 150 active lawsuits against the platform, most regarding user safety.&quot;</td>
+    </tr>
+    <tr>
+      <td>Robux stipend / currency value</td>
+      <td>475</td>
+      <td>8.7%</td>
+      <td>&quot;Uninteresting to have discounts instead of more Robux, I prefer bigger amounts rather than needing to maintain a subscription to keep a discount.&quot; | &quot;It&#x27;s really really oveprriced for anyone who doesn&#x27;t spend thousands of robux regularly.&quot; | &quot;Doesn’t seem worth to add onto my existing Premium or switch over from my existing Premium.&quot;</td>
+    </tr>
+    <tr>
+      <td>Monthly subscription resistance</td>
+      <td>227</td>
+      <td>4.2%</td>
+      <td>&quot;Uninteresting to have discounts instead of more Robux, I prefer bigger amounts rather than needing to maintain a subscription to keep a discount.&quot; | &quot;Currently on the Premium subscription&quot; | &quot;I&#x27;m not buying your subscription until you allow age separate lobbies&quot;</td>
+    </tr>
+    <tr>
+      <td>Private server utility</td>
+      <td>78</td>
+      <td>1.4%</td>
+      <td>&quot;It’s a fair price that has great benefits (I do like the discount and free private servers) but I don’t like the fact that reselling and trading limited items has been included in &quot; | &quot;Nothing to trade/resell right now, can’t talk with any friends who would probably want Robux, not actively playing paid private server games… this leaves publishing and saving on p&quot; | &quot;I don&#x27;t think I spend extra robux when I buy stuff or send it. I don&#x27;t use private servers or my friends have some. I don&#x27;t buy often enough to use the discount. I don&#x27;t care for c&quot;</td>
+    </tr>
+  </tbody>
+</table>
+    
+    </section>
+    
+    </section>
+    <section id="churned" class="tab-panel">
+    
+    <section class="report-section">
+      <h2>Churned Winback Opportunity</h2>
+      
+      <p>This combines main churn reason with re-subscribe intent. Reasons with high respondent count and high maybe/high intent are the most actionable winback pools.</p>
+      <div style="height:520px; width:100%;">                            <div id="c39d270f-789a-4fb4-a66c-4cec4a4b17cb" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("c39d270f-789a-4fb4-a66c-4cec4a4b17cb")) {                    Plotly.newPlot(                        "c39d270f-789a-4fb4-a66c-4cec4a4b17cb",                        [{"hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eRespondents=%{marker.size}\u003cbr\u003eRecoverable Intent=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["No monthly Robux","Other","I don\u2019t buy enough items to make use of the discount","I don\u2019t transfer Robux to others often enough","I don\u2019t use Private Servers enough"],"legendgroup":"","marker":{"color":"#636efa","size":{"dtype":"i2","bdata":"EAVjBDEBzwB1AA=="},"sizemode":"area","sizeref":3.24,"symbol":"circle"},"mode":"markers","name":"","orientation":"v","showlegend":false,"x":{"dtype":"i2","bdata":"EAVjBDEBzwB1AA=="},"xaxis":"x","y":{"dtype":"f8","bdata":"SBl4ujU\u002f4j8j4mB93hDiP7bXL3cSCuQ\u002fFBCdr+6R5j\u002fSIA3SIA3iPw=="},"yaxis":"y","type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Respondents"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Recoverable Intent"},"tickformat":".0%"},"legend":{"tracegroupgap":0,"itemsizing":"constant"},"title":{"text":"Churned Winback Opportunity by Churn Reason"}},                        {"displayModeBar": false, "responsive": true}                    )                };            </script>        </div>
+      <table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Churn Reason</th>
+      <th>Respondents</th>
+      <th>High intent</th>
+      <th>Maybe intent</th>
+      <th>Recoverable Intent</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>No monthly Robux</td>
+      <td>1296</td>
+      <td>16.0%</td>
+      <td>41.0%</td>
+      <td>57.0%</td>
+    </tr>
+    <tr>
+      <td>Other</td>
+      <td>1123</td>
+      <td>21.9%</td>
+      <td>34.6%</td>
+      <td>56.5%</td>
+    </tr>
+    <tr>
+      <td>I don’t buy enough items to make use of the discount</td>
+      <td>305</td>
+      <td>21.6%</td>
+      <td>41.0%</td>
+      <td>62.6%</td>
+    </tr>
+    <tr>
+      <td>I don’t transfer Robux to others often enough</td>
+      <td>207</td>
+      <td>29.5%</td>
+      <td>41.1%</td>
+      <td>70.5%</td>
+    </tr>
+    <tr>
+      <td>I don’t use Private Servers enough</td>
+      <td>117</td>
+      <td>22.2%</td>
+      <td>34.2%</td>
+      <td>56.4%</td>
+    </tr>
+  </tbody>
+</table>
+    
+    </section>
+    
+    
+    <section class="report-section">
+      <h2>Churned Open-End Themes</h2>
+      
+      <p>Keyword coding of churned open-ends surfaces the most common pain points behind cancellation and return intent.</p>
+      <table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Theme</th>
+      <th>Mentions</th>
+      <th>Share of text respondents</th>
+      <th>Representative quotes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Low usage / low need</td>
+      <td>1534</td>
+      <td>53.8%</td>
+      <td>&quot;I didn&#x27;t have the money this month to renew it. | I like the fact I can get free private servers to play with my friends or by myself rather than having to play with a bunch of ran&quot; | &quot;Because I can&#x27;t justify to myself paying for a subscription for a game that use to be free and about empowering imagination not greed and allowing child predators to persist.&quot; | &quot;i dont have enough money&quot;</td>
+    </tr>
+    <tr>
+      <td>Cost / affordability</td>
+      <td>1320</td>
+      <td>46.3%</td>
+      <td>&quot;broke lol&quot; | &quot;I didn&#x27;t have the money this month to renew it. | I like the fact I can get free private servers to play with my friends or by myself rather than having to play with a bunch of ran&quot; | &quot;Because I can&#x27;t justify to myself paying for a subscription for a game that use to be free and about empowering imagination not greed and allowing child predators to persist.&quot;</td>
+    </tr>
+    <tr>
+      <td>Robux stipend / currency value</td>
+      <td>812</td>
+      <td>28.5%</td>
+      <td>&quot;Doesn&#x27;t really add much that premium already gives&quot; | &quot;no money plus i think its unfair you have to pay a premium to do trading and stuff | because i would only need it to sell 1 limited item on my account still and then never use it a&quot; | &quot;Did not need to publish any more shirts; hopefully the people who bought the shirts can retain the item | I only bought the subscription to post avatar items and transfer items bet&quot;</td>
+    </tr>
+    <tr>
+      <td>Age / verification restrictions</td>
+      <td>539</td>
+      <td>18.9%</td>
+      <td>&quot;I didn&#x27;t have the money this month to renew it. | I like the fact I can get free private servers to play with my friends or by myself rather than having to play with a bunch of ran&quot; | &quot;having trouble with supporting alot of the changes being made. | because roblox has been on a path of ignoring their community, and rolling out updates that the userbase has very v&quot; | &quot;Did not need to publish any more shirts; hopefully the people who bought the shirts can retain the item | I only bought the subscription to post avatar items and transfer items bet&quot;</td>
+    </tr>
+    <tr>
+      <td>Monthly subscription resistance</td>
+      <td>366</td>
+      <td>12.8%</td>
+      <td>&quot;I didn&#x27;t have the money this month to renew it. | I like the fact I can get free private servers to play with my friends or by myself rather than having to play with a bunch of ran&quot; | &quot;Because I can&#x27;t justify to myself paying for a subscription for a game that use to be free and about empowering imagination not greed and allowing child predators to persist.&quot; | &quot;Did not need to publish any more shirts; hopefully the people who bought the shirts can retain the item | I only bought the subscription to post avatar items and transfer items bet&quot;</td>
+    </tr>
+    <tr>
+      <td>Platform trust / protest</td>
+      <td>264</td>
+      <td>9.3%</td>
+      <td>&quot;wanted to get the better version of roblox plus | i wanted to wait till the better verison of roblox plus came out&quot; | &quot;Because I can&#x27;t justify to myself paying for a subscription for a game that use to be free and about empowering imagination not greed and allowing child predators to persist.&quot; | &quot;no money plus i think its unfair you have to pay a premium to do trading and stuff | because i would only need it to sell 1 limited item on my account still and then never use it a&quot;</td>
+    </tr>
+    <tr>
+      <td>Private server utility</td>
+      <td>259</td>
+      <td>9.1%</td>
+      <td>&quot;private servers&quot; | &quot;I didn&#x27;t have the money this month to renew it. | I like the fact I can get free private servers to play with my friends or by myself rather than having to play with a bunch of ran&quot; | &quot;Because of the private server benefit&quot;</td>
+    </tr>
+    <tr>
+      <td>Customization / identity</td>
+      <td>43</td>
+      <td>1.5%</td>
+      <td>&quot;Did not need to publish any more shirts; hopefully the people who bought the shirts can retain the item | I only bought the subscription to post avatar items and transfer items bet&quot; | &quot;I don&#x27;t play roblox anymore since the recent updates and market or customization changes | In the past I would have my subscription renew for months as I&#x27;ve been with Roblox since &quot; | &quot;I don&#x27;t get robux from buying the subscription, so i feel that it isn&#x27;t a deal if i&#x27;m not actively sending robux to others or actively making avatar items, as i saw getting premium&quot;</td>
+    </tr>
+  </tbody>
+</table>
+    
+    </section>
+    
+    </section>
+    <section id="renewed" class="tab-panel">
+    
+    <section class="report-section">
+      <h2>Renewed Retention Value Drivers</h2>
+      
+      <p>This maps each renewed value driver by size and high stay intent. Large groups with lower high-intent rates are the highest-priority retention watchouts.</p>
+      <div style="height:520px; width:100%;">                            <div id="d1314cbe-33a0-4e6d-a0bc-79a7ab21cc33" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("d1314cbe-33a0-4e6d-a0bc-79a7ab21cc33")) {                    Plotly.newPlot(                        "d1314cbe-33a0-4e6d-a0bc-79a7ab21cc33",                        [{"hovertemplate":"\u003cb\u003e%{hovertext}\u003c\u002fb\u003e\u003cbr\u003e\u003cbr\u003eRespondents=%{marker.size}\u003cbr\u003eHigh_Intent=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","hovertext":["Discounts","Private servers","Better deal","Free Robux transfers","Other","Feel more exclusive with Plus badge","Trade & resell avatar items","Friend connection","Publish avatar items"],"legendgroup":"","marker":{"color":"#636efa","size":{"dtype":"i2","bdata":"igVuA4kB3wCTAG0AQQA9AC8A"},"sizemode":"area","sizeref":3.545,"symbol":"circle"},"mode":"markers","name":"","orientation":"v","showlegend":false,"x":{"dtype":"i2","bdata":"igVuA4kB3wCTAG0AQQA9AC8A"},"xaxis":"x","y":{"dtype":"f8","bdata":"pOW0j8qD5z9xsqJfhMvlPxXgaKdHgug\u002fkp8rZjny4z9L9waUiSvdP4FN+8kS2OQ\u002fdmIndmIn5j9UXDIE62jjP1Lf2ajvbOQ\u002f"},"yaxis":"y","type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Respondents"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"High_Intent"},"tickformat":".0%"},"legend":{"tracegroupgap":0,"itemsizing":"constant"},"title":{"text":"Renewed Retention Strength by Value Driver"}},                        {"displayModeBar": false, "responsive": true}                    )                };            </script>        </div>
+      <table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Value Driver</th>
+      <th>Respondents</th>
+      <th>High stay intent</th>
+      <th>Low/maybe risk</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Discounts</td>
+      <td>1418</td>
+      <td>73.5%</td>
+      <td>26.5%</td>
+    </tr>
+    <tr>
+      <td>Private servers</td>
+      <td>878</td>
+      <td>68.1%</td>
+      <td>31.9%</td>
+    </tr>
+    <tr>
+      <td>Better deal</td>
+      <td>393</td>
+      <td>76.6%</td>
+      <td>23.4%</td>
+    </tr>
+    <tr>
+      <td>Free Robux transfers</td>
+      <td>223</td>
+      <td>62.3%</td>
+      <td>37.7%</td>
+    </tr>
+    <tr>
+      <td>Other</td>
+      <td>147</td>
+      <td>45.6%</td>
+      <td>54.4%</td>
+    </tr>
+    <tr>
+      <td>Feel more exclusive with Plus badge</td>
+      <td>109</td>
+      <td>65.1%</td>
+      <td>34.9%</td>
+    </tr>
+    <tr>
+      <td>Trade &amp; resell avatar items</td>
+      <td>65</td>
+      <td>69.2%</td>
+      <td>30.8%</td>
+    </tr>
+    <tr>
+      <td>Friend connection</td>
+      <td>61</td>
+      <td>60.7%</td>
+      <td>39.3%</td>
+    </tr>
+    <tr>
+      <td>Publish avatar items</td>
+      <td>47</td>
+      <td>63.8%</td>
+      <td>36.2%</td>
+    </tr>
+  </tbody>
+</table>
+    
+    </section>
+    
+    
+    <section class="report-section">
+      <h2>Renewed Risk Profile</h2>
+      
+      <p>This compares low/maybe stay intent against high stay intent among renewed subscribers.</p>
+      <table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Intent Risk</th>
+      <th>Respondents</th>
+      <th>High Intent</th>
+      <th>Value Driver</th>
+      <th>Q2_LABEL</th>
+      <th>Q4_LABEL</th>
+      <th>Q12_LABEL</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>High Stay Intent</td>
+      <td>2330</td>
+      <td>100.0%</td>
+      <td>Discounts (44.7%)</td>
+      <td>Neutral (28.4%)</td>
+      <td>Extremely familiar (41.6%)</td>
+      <td>Roblox avatar items with particle effects: Get exclusive accessories made by Roblox that glow, sparkle or have moving animations (34.5%)</td>
+    </tr>
+    <tr>
+      <td>Low / Maybe Stay Intent</td>
+      <td>1011</td>
+      <td>0.0%</td>
+      <td>Discounts (37.2%)</td>
+      <td>Dislike it (29.4%)</td>
+      <td>Somewhat familiar (32.7%)</td>
+      <td>Roblox avatar items with particle effects: Get exclusive accessories made by Roblox that glow, sparkle or have moving animations (30.5%)</td>
+    </tr>
+  </tbody>
+</table>
+    
+    </section>
+    
+    
+    <section class="report-section">
+      <h2>Renewed Open-End Themes</h2>
+      
+      <p>Keyword coding of renewed open-ends highlights what current subscribers say when explaining stay intent.</p>
+      <table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Theme</th>
+      <th>Mentions</th>
+      <th>Share of text respondents</th>
+      <th>Representative quotes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Low usage / low need</td>
+      <td>1283</td>
+      <td>47.2%</td>
+      <td>&quot;i want to keep having it renewed for any special events or items cause i like to collect&quot; | &quot;because i enjoy it but 5 dollars a month basically forced other wise i cant do anything or even get stuff from other people :C&quot; | &quot;I&#x27;m not entirely sure I have the proper words to explain why. But if I had to say them, I guess that 10% discount thing is worth being part of the Plus club.&quot;</td>
+    </tr>
+    <tr>
+      <td>Cost / affordability</td>
+      <td>612</td>
+      <td>22.5%</td>
+      <td>&quot;Money hungry corporation trying to lower stock price for unknown evil reason bye.&quot; | &quot;im broke&quot; | &quot;because my account was hacked and the hacker got me banned took my items and roblox support failed me and did nothing to help 4.2 million in items to be exact. after spending loads&quot;</td>
+    </tr>
+    <tr>
+      <td>Robux stipend / currency value</td>
+      <td>591</td>
+      <td>21.8%</td>
+      <td>&quot;I dislike the platform and am only subscribed to distribute the excess Robux I&#x27;ve gathered in my youth to friends&quot; | &quot;Like I said, premium is basically the same for me, not only that ROBLOX has been here majority of my life. The next year I&#x27;ll probably still have plus.&quot; | &quot;cuz ive always had premium so i guess id have this&quot;</td>
+    </tr>
+    <tr>
+      <td>Private server utility</td>
+      <td>412</td>
+      <td>15.2%</td>
+      <td>&quot;Because I&#x27;m going to sustain a 20% discount and keep free private servers.&quot; | &quot;because i enjoy the free private servers (that i would otherwise have to pay for in robux).&quot; | &quot;the discounts, and free private servers and its cheaper&quot;</td>
+    </tr>
+    <tr>
+      <td>Age / verification restrictions</td>
+      <td>257</td>
+      <td>9.5%</td>
+      <td>&quot;because my account was hacked and the hacker got me banned took my items and roblox support failed me and did nothing to help 4.2 million in items to be exact. after spending loads&quot; | &quot;Like I said, premium is basically the same for me, not only that ROBLOX has been here majority of my life. The next year I&#x27;ll probably still have plus.&quot; | &quot;Depends on how the platform goes. I&#x27;m not too happy with the chat restrictions, trusted connections, AI summaries, and global chat. If I am to be categorized in the 21+ age group t&quot;</td>
+    </tr>
+    <tr>
+      <td>Monthly subscription resistance</td>
+      <td>244</td>
+      <td>9.0%</td>
+      <td>&quot;i want to keep having it renewed for any special events or items cause i like to collect&quot; | &quot;I have been subscribed to all the builders clubs on multiple accounts, have multiple active subscriptions right now, trading and limiteds have been my life since before trade syste&quot; | &quot;You took away our monthly R$ we would get, that&#x27;s pretty rude. I have been a loyal player since 2011, 2011! That&#x27;s a LONG time and removing our ability to earn R$ every month from &quot;</td>
+    </tr>
+    <tr>
+      <td>Platform trust / protest</td>
+      <td>188</td>
+      <td>6.9%</td>
+      <td>&quot;Money hungry corporation trying to lower stock price for unknown evil reason bye.&quot; | &quot;I&#x27;m not entirely sure I have the proper words to explain why. But if I had to say them, I guess that 10% discount thing is worth being part of the Plus club.&quot; | &quot;because my account was hacked and the hacker got me banned took my items and roblox support failed me and did nothing to help 4.2 million in items to be exact. after spending loads&quot;</td>
+    </tr>
+    <tr>
+      <td>Customization / identity</td>
+      <td>67</td>
+      <td>2.5%</td>
+      <td>&quot;Just because I want to publish my own avatar items.&quot; | &quot;I would like to keep my ability to publish games and avatar items.&quot; | &quot;Because of the exclusive gift on July 31st&quot;</td>
+    </tr>
+  </tbody>
+</table>
+    
+    </section>
+    
+    </section>
+    <div class="footer">Sources: Roblox Plus non-subscriber CSV, churned subscriber SPSS survey, renewed subscriber SPSS survey · Driver tests use chi-square and Cramer's V; text themes use keyword coding.</div>
+  </main>
+  <script>
+    document.querySelectorAll(".tab-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        const tab = button.dataset.tab;
+        document.querySelectorAll(".tab-button").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach((panel) => panel.classList.remove("active"));
+        button.classList.add("active");
+        document.getElementById(tab).classList.add("active");
+        window.dispatchEvent(new Event("resize"));
+      });
+    });
+  </script>
+</body>
+</html>
