@@ -33,6 +33,13 @@ THEME_RULES = {
     "Customization / identity": ["custom", "theme", "profile", "frame", "avatar", "particle", "exclusive"],
 }
 
+VARIABLE_DISPLAY_NAMES = {
+    "Q2_LABEL": "Roblox sentiment",
+    "Q3_LABEL": "Primary motivation for using Roblox",
+    "Q4_LABEL": "Familiarity with Plus",
+    "Q12_LABEL": "New Plus feature picked",
+}
+
 
 def pct(value: float, digits: int = 1) -> str:
     if pd.isna(value):
@@ -180,6 +187,13 @@ def make_percent_bar(df: pd.DataFrame, x: str, y: str, title: str, color: str | 
     return fig
 
 
+def apply_variable_display_names(df: pd.DataFrame) -> pd.DataFrame:
+    out = df.copy()
+    if "Predictor" in out.columns:
+        out["Predictor"] = out["Predictor"].replace(VARIABLE_DISPLAY_NAMES)
+    return out.rename(columns=VARIABLE_DISPLAY_NAMES)
+
+
 def main() -> None:
     combined = base.load_segments()
     combined["High Intent"] = combined["Q10_SCORE"].ge(4)
@@ -198,7 +212,7 @@ def main() -> None:
             segment_driver_rows.append(result)
     segment_drivers = pd.DataFrame(segment_driver_rows).sort_values(["Segment", "Cramer's V"], ascending=[True, False])
 
-    driver_plot = combined_drivers.copy()
+    driver_plot = apply_variable_display_names(combined_drivers)
     fig_combined_drivers = px.bar(
         driver_plot,
         x="Predictor",
@@ -208,7 +222,7 @@ def main() -> None:
     )
     fig_combined_drivers.update_layout(xaxis_tickangle=-25, yaxis_title="Cramer's V")
 
-    segment_driver_plot = segment_drivers.groupby("Segment", as_index=False).head(4)
+    segment_driver_plot = apply_variable_display_names(segment_drivers.groupby("Segment", as_index=False).head(4))
     fig_segment_drivers = px.bar(
         segment_driver_plot,
         x="Predictor",
@@ -245,6 +259,7 @@ def main() -> None:
         "Intent Group",
         ["Segment", "Q2_LABEL", "Q4_LABEL", "Q3_LABEL", "Q12_LABEL", "Age Range"],
     ).sort_values("Respondents", ascending=False)
+    intent_profile = apply_variable_display_names(intent_profile)
 
     # Non-subscriber analyses
     non_raw = load_non_raw()
@@ -332,17 +347,18 @@ def main() -> None:
         "Intent Risk",
         ["Value Driver", "Q2_LABEL", "Q4_LABEL", "Q12_LABEL"],
     )
+    renewed_risk_profile = apply_variable_display_names(renewed_risk_profile)
     renewed_themes = keyword_theme_table(renewed.get("Q11_TEXT_COMBINED", pd.Series(dtype="object")))
 
     # Formatting tables
-    combined_driver_table = combined_drivers.assign(
+    combined_driver_table = apply_variable_display_names(combined_drivers).assign(
         **{
-            "Cramer's V": combined_drivers["Cramer's V"].map(lambda value: num(value, 3)),
-            "p-value": combined_drivers["p-value"].map(lambda value: f"{value:.2e}" if pd.notna(value) else "N/A"),
-            "High-intent spread": combined_drivers["High-intent spread"].map(pct),
+            "Cramer's V": lambda d: d["Cramer's V"].map(lambda value: num(value, 3)),
+            "p-value": lambda d: d["p-value"].map(lambda value: f"{value:.2e}" if pd.notna(value) else "N/A"),
+            "High-intent spread": lambda d: d["High-intent spread"].map(pct),
         }
     )
-    segment_driver_table = segment_drivers.groupby("Segment", as_index=False).head(5).assign(
+    segment_driver_table = apply_variable_display_names(segment_drivers.groupby("Segment", as_index=False).head(5)).assign(
         **{
             "Cramer's V": lambda d: d["Cramer's V"].map(lambda value: num(value, 3)),
             "p-value": lambda d: d["p-value"].map(lambda value: f"{value:.2e}" if pd.notna(value) else "N/A"),
@@ -373,6 +389,10 @@ def main() -> None:
     top_churn_opportunity = churn_winback.sort_values("Recoverable Intent", ascending=False).iloc[0]
     top_renewed_value = renewed_value_profile.iloc[0]
     top_combined_driver_v = top_combined_driver["Cramer's V"]
+    top_combined_driver_name = VARIABLE_DISPLAY_NAMES.get(
+        top_combined_driver["Predictor"],
+        top_combined_driver["Predictor"],
+    )
 
     hero = f"""
     <header class="hero">
@@ -380,7 +400,7 @@ def main() -> None:
       <h1>Advanced Roblox Plus Survey Analysis</h1>
       <p class="lede">This report runs the next layer of analyses across non-subscribers, churned subscribers, and renewed subscribers: high-intent driver tests, segment-specific profiles, barrier sizing, winback opportunity, retention value drivers, future feature prioritization, and open-end keyword themes.</p>
       <div class="kpi-grid">
-        {make_kpi("Top Cross-Segment Driver", str(top_combined_driver["Predictor"]), f"Cramer's V {num(top_combined_driver_v, 3)}")}
+        {make_kpi("Top Cross-Segment Driver", str(top_combined_driver_name), f"Cramer's V {num(top_combined_driver_v, 3)}")}
         {make_kpi("Top Non-Sub Barrier", str(top_non_barrier["Barrier Group"]), pct(top_non_barrier["Estimated Share"]))}
         {make_kpi("Best Winback Signal", str(top_churn_opportunity["Churn Reason"]), f"{pct(top_churn_opportunity['Recoverable Intent'])} maybe/high intent")}
         {make_kpi("Top Retention Value", str(top_renewed_value["Value Driver"]), f"{top_renewed_value['Respondents']:,} renewed users")}
@@ -392,7 +412,7 @@ def main() -> None:
     <div class="takeaway">
       <h2>Executive Summary</h2>
       <ol>
-        <li><strong>Intent is most strongly structured by segment relationship:</strong> the strongest cross-segment driver is {top_combined_driver["Predictor"]} (Cramer's V={num(top_combined_driver["Cramer's V"], 3)}), confirming that acquisition, winback, and retention should be managed as distinct funnels.</li>
+        <li><strong>Intent is most strongly structured by segment relationship:</strong> the strongest cross-segment driver is {top_combined_driver_name} (Cramer's V={num(top_combined_driver["Cramer's V"], 3)}), confirming that acquisition, winback, and retention should be managed as distinct funnels.</li>
         <li><strong>Within segments, platform sentiment and Plus familiarity are recurring intent signals:</strong> they repeatedly appear among the top univariate drivers, meaning product value messaging has to work alongside broader Roblox sentiment.</li>
         <li><strong>The biggest strategic split is practical value vs. emotional/cosmetic upside:</strong> discounts, private servers, and Robux-related benefits anchor current value, while future features help create conversion or retention upside for specific audiences.</li>
       </ol>
